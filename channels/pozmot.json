@@ -4,7 +4,7 @@
   "handle": "@PozMot7",
   "format": "versus",
   "youtube": {
-    "channel_id": "TODO",
+    "channel_id": "UCYyZbo_lCTVgrkkzsn7B-Xg",
     "client_secret_file": "credentials/pozmot_client_secret.json",
     "token_file": "credentials/pozmot_token.json",
     "default_privacy_status": "private",
