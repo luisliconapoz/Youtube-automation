@@ -3,8 +3,8 @@
 metadata, y lo programa para publicar. Usa las credenciales OAuth propias
 del canal (client_secret_file / token_file en channels/[canal].json).
 
-TODO: implementar una vez el usuario configure el proyecto de Google Cloud
-y las credenciales OAuth de cada uno de los 4 canales.
+Requiere que el canal ya haya sido autorizado una vez con
+scripts/authorize_channel.py (ese paso genera el token_file).
 """
 import argparse
 import json
@@ -12,11 +12,13 @@ from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.readonly",
+]
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -26,19 +28,22 @@ def cargar_canal(channel_key: str) -> dict:
 
 def obtener_credenciales(canal: dict) -> Credentials:
     token_file = ROOT / canal["youtube"]["token_file"]
-    client_secret_file = ROOT / canal["youtube"]["client_secret_file"]
+    if not token_file.exists():
+        raise RuntimeError(
+            f"No hay token para este canal. Corre primero: "
+            f"python scripts/authorize_channel.py {canal['channel_key']} --step url"
+        )
 
-    creds = None
-    if token_file.exists():
-        creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
+    creds = Credentials.from_authorized_user_file(str(token_file), SCOPES)
+    if not creds.valid:
+        if creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            token_file.write_text(creds.to_json())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(str(client_secret_file), SCOPES)
-            creds = flow.run_local_server(port=0)
-        token_file.parent.mkdir(parents=True, exist_ok=True)
-        token_file.write_text(creds.to_json())
+            raise RuntimeError(
+                f"Token inválido y sin refresh_token. Vuelve a autorizar el canal: "
+                f"python scripts/authorize_channel.py {canal['channel_key']} --step url"
+            )
     return creds
 
 
