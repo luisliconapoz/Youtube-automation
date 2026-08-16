@@ -23,8 +23,9 @@ en la misma máquina):
 """
 import argparse
 import json
+import tempfile
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs
 
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -56,28 +57,44 @@ def build_flow(canal: dict) -> Flow:
     )
 
 
+def pkce_file(channel_key: str) -> Path:
+    return Path(tempfile.gettempdir()) / f"clip_house_factory_pkce_{channel_key}.txt"
+
+
 def paso_url(channel_key: str) -> None:
     canal = cargar_canal(channel_key)
     flow = build_flow(canal)
     auth_url, _ = flow.authorization_url(access_type="offline", prompt="consent")
+    pkce_file(channel_key).write_text(flow.code_verifier)
     print(auth_url)
 
 
 def extraer_code(valor: str) -> str:
-    if valor.startswith("http"):
-        qs = parse_qs(urlparse(valor).query)
-        if "code" not in qs:
-            raise ValueError("No encontré 'code' en la URL pegada")
-        return qs["code"][0]
-    return valor.strip()
+    valor = valor.strip()
+    if "?" in valor:
+        query = valor.split("?", 1)[1]
+        qs = parse_qs(query)
+        if "code" in qs:
+            return qs["code"][0]
+        raise ValueError("No encontré 'code' en la URL pegada")
+    return valor
 
 
 def paso_exchange(channel_key: str, code_o_url: str) -> None:
     canal = cargar_canal(channel_key)
     flow = build_flow(canal)
+    pkce_path = pkce_file(channel_key)
+    if not pkce_path.exists():
+        raise RuntimeError(
+            f"No encontré el code_verifier de este canal. Corre de nuevo: "
+            f"python scripts/authorize_channel.py {channel_key} --step url"
+        )
+    flow.code_verifier = pkce_path.read_text()
+
     code = extraer_code(code_o_url)
     flow.fetch_token(code=code)
     creds = flow.credentials
+    pkce_path.unlink()
 
     token_file = ROOT / canal["youtube"]["token_file"]
     token_file.parent.mkdir(parents=True, exist_ok=True)
