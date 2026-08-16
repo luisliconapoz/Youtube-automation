@@ -4,7 +4,7 @@
   "handle": "@ClipHouseHD",
   "format": "versus",
   "youtube": {
-    "channel_id": "TODO",
+    "channel_id": "UCOGIMU3PuR9VCBVrLVWQMqA",
     "client_secret_file": "credentials/clip_house_client_secret.json",
     "token_file": "credentials/clip_house_token.json",
     "default_privacy_status": "private",
