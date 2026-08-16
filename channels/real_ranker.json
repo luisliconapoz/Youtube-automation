@@ -4,11 +4,19 @@
   "handle": "@TheRankerOficial",
   "format": "top5",
   "script_structure": {
-    "order": ["intro_hook", "rank_5", "rank_4", "rank_3", "rank_2", "rank_1_remate", "outro_cta"],
+    "order": [
+      "intro_hook",
+      "rank_5",
+      "rank_4",
+      "rank_3",
+      "rank_2",
+      "rank_1_remate",
+      "outro_cta"
+    ],
     "countdown_style": "descendente 5-4-3-2-1 con remate en el puesto #1"
   },
   "youtube": {
-    "channel_id": "TODO",
+    "channel_id": "UCYyZbo_lCTVgrkkzsn7B-Xg",
     "client_secret_file": "credentials/real_ranker_client_secret.json",
     "token_file": "credentials/real_ranker_token.json",
     "default_privacy_status": "private",
