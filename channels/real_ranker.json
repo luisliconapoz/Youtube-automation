@@ -16,7 +16,7 @@
     "countdown_style": "descendente 5-4-3-2-1 con remate en el puesto #1"
   },
   "youtube": {
-    "channel_id": "TODO",
+    "channel_id": "UC0MKF2W-SX1toBUlO3THH7Q",
     "client_secret_file": "credentials/real_ranker_client_secret.json",
     "token_file": "credentials/real_ranker_token.json",
     "default_privacy_status": "private",
