@@ -1,0 +1,74 @@
+{
+  "channel_key": "real_ranker",
+  "display_name": "The Real Ranker",
+  "handle": "@TheRankerOficial",
+  "format": "top5",
+  "script_structure": {
+    "order": ["intro_hook", "rank_5", "rank_4", "rank_3", "rank_2", "rank_1_remate", "outro_cta"],
+    "countdown_style": "descendente 5-4-3-2-1 con remate en el puesto #1"
+  },
+  "youtube": {
+    "channel_id": "TODO",
+    "client_secret_file": "credentials/real_ranker_client_secret.json",
+    "token_file": "credentials/real_ranker_token.json",
+    "default_privacy_status": "private",
+    "default_category_id": "TODO",
+    "default_language": "es",
+    "made_for_kids": false,
+    "publish_schedule": {
+      "timezone": "TODO",
+      "default_publish_time_local": "TODO"
+    }
+  },
+  "visual_template": {
+    "resolution": "1080x1920",
+    "fps": "TODO",
+    "colors": {
+      "primary": "TODO",
+      "secondary": "TODO",
+      "highlight": "TODO",
+      "text": "TODO",
+      "text_outline": "TODO"
+    },
+    "subtitles": {
+      "font_file": "TODO",
+      "font_size": "TODO",
+      "position": "TODO",
+      "style": "TODO",
+      "highlight_active_word": "TODO"
+    },
+    "rank_badge": {
+      "style": "TODO",
+      "position": "TODO",
+      "animation": "TODO"
+    },
+    "logo": {
+      "file": "assets/real_ranker/logo.png",
+      "position": "TODO",
+      "size_pct": "TODO",
+      "opacity": "TODO"
+    },
+    "zoom": {
+      "enabled": "TODO",
+      "duration_s": "TODO",
+      "intensity_pct": "TODO"
+    },
+    "transitions": {
+      "type": "TODO",
+      "duration_s": "TODO"
+    },
+    "intro_outro": {
+      "intro_file": "TODO",
+      "outro_file": "TODO"
+    }
+  },
+  "metadata_style": {
+    "title_pattern": "TODO",
+    "description_template": "TODO",
+    "hashtags": [],
+    "default_tags": []
+  },
+  "notion": {
+    "database_id": "TODO"
+  }
+}

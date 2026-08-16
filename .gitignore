@@ -1,0 +1,24 @@
+# Material crudo y salidas (pesado, no se versiona)
+clips_raw/*/*
+!clips_raw/*/.gitkeep
+
+output/*/*
+!output/*/.gitkeep
+
+thumbnails/*/*
+!thumbnails/*/.gitkeep
+
+# Credenciales — NUNCA se suben al repo
+credentials/*.json
+credentials/*token*
+credentials/*client_secret*
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Sistema
+.DS_Store
