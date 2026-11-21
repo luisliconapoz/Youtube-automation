@@ -1,0 +1,51 @@
+name: PILO STUDIO — lote diario
+
+on:
+  schedule:
+    - cron: "0 14 * * *"        # 08:00 hora de Guatemala, una ronda diaria
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: "Rondas (un video por canal activo en cada una)"
+        default: "1"
+      format:
+        description: "LONG o SHORT"
+        default: "LONG"
+
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      PILO_OUTPUT_DIR: ${{ github.workspace }}/output
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencias
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q pillow
+      - name: Tests
+        run: python -m unittest discover -s tests
+      - name: Lote
+        run: |
+          ROUNDS="${{ github.event.inputs.rounds || '1' }}"
+          FORMAT="${{ github.event.inputs.format || 'LONG' }}"
+          python -m pilo_studio batch --count "$ROUNDS" --format "$FORMAT"
+      - name: Subir a Google Drive
+        if: ${{ secrets.RCLONE_CONF != '' }}
+        env:
+          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash >/dev/null
+          printf '%s' "$RCLONE_CONF" > rclone.conf
+          rclone --config rclone.conf copy output/ "gdrive:PILO_STUDIO/" --include "*/LISTOS/**" --include "*/proyectos/**/07_render/**"
+      - name: Guardar registro
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilo-log-${{ github.run_id }}
+          path: output/**/state.json

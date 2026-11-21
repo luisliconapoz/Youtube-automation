@@ -201,6 +201,12 @@ class TestPipeline(unittest.TestCase):
 
 
 
+class TestBatch(unittest.TestCase):
+    def test_round_robin_one_per_channel(self):
+        from pilo_studio.cli import batch_order
+        self.assertEqual(batch_order(["A", "B", "C"], 2), ["A", "B", "C", "A", "B", "C"])
+
+
 class TestPlanGeneration(unittest.TestCase):
     def test_repair_loop_fixes_reported_errors(self):
         from pilo_studio.agents.generate import generate_valid_plan

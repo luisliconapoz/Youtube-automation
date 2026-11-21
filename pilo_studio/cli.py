@@ -18,6 +18,7 @@ from pathlib import Path
 
 from .agents.scriptwriter import build_system_prompt, build_user_prompt
 from .core.brand import active_brands, check_character_exclusivity, load_registry
+from .core.brand import load_brand
 from .core.formats import decide_format
 from .core.paths import OUTPUT_DIR
 from .ideas.registry import IdeaRegistry
@@ -102,6 +103,26 @@ def _run_generated(a):
     return 0 if status.value in ("done", "blocked") else 1
 
 
+def batch_order(brand_ids: list[str], count: int) -> list[str]:
+    """Ronda a ronda: un video de cada canal activo antes de pasar a la siguiente ronda."""
+    return [b for _ in range(count) for b in brand_ids]
+
+
+def cmd_batch(a):
+    from .core.brand import active_brands
+    brands = [b.id for b in active_brands()]
+    llm = _make_llm()
+    rows = []
+    for brand_id in batch_order(brands, a.count):
+        project = Project.create(brand_id, a.format, load_brand(brand_id).niche)
+        project.write_json("request.json", {"brand": brand_id, "format": a.format, "topic": None})
+        status = Orchestrator(project, llm=llm).run()
+        rows.append((brand_id, project.root.name, status.value))
+    for brand_id, name, st in rows:
+        print(f"{brand_id:<12} {st:<8} {name}")
+    return 0 if all(st in ("done", "blocked") for _, _, st in rows) else 1
+
+
 def cmd_new(a):
     if a.brand:
         return _run_generated(a)
@@ -162,6 +183,11 @@ def main(argv=None):
     p.add_argument("--topic")
     p.add_argument("--until", choices=stages)
     p.set_defaults(fn=cmd_new)
+
+    p = sub.add_parser("batch")
+    p.add_argument("--count", type=int, default=1, help="rondas: un video por canal activo en cada una")
+    p.add_argument("--format", choices=["LONG", "SHORT"], default="LONG")
+    p.set_defaults(fn=cmd_batch)
 
     p = sub.add_parser("run")
     p.add_argument("project")
