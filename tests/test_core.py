@@ -200,5 +200,43 @@ class TestPipeline(unittest.TestCase):
         self.assertIn("007", self.project.path("qa_images.txt").read_text())
 
 
+
+class TestPlanGeneration(unittest.TestCase):
+    def test_repair_loop_fixes_reported_errors(self):
+        from pilo_studio.agents.generate import generate_valid_plan
+        good = example_plan()
+        bad = copy.deepcopy(good)
+        bad["scenes"][2]["characters"][0]["id"] = "PURPLE"   # error de otra marca
+        replies = [json.dumps(bad), "```json\n" + json.dumps(good) + "\n```"]
+        seen = []
+
+        def complete(system, messages):
+            seen.append(messages)
+            return replies.pop(0)
+
+        from pilo_studio.providers.llm_claude import extract_json
+        plan, attempt = generate_valid_plan(complete, extract_json, "sys", "user")
+        self.assertEqual(attempt, 1)
+        self.assertIn("FOREIGN_CHARACTER", seen[1][-1]["content"])  # el error llegó al agente
+        self.assertTrue(validate_plan(plan).ok)
+
+    def test_gives_up_after_max_repairs(self):
+        from pilo_studio.agents.generate import PlanRejected, generate_valid_plan
+        from pilo_studio.providers.llm_claude import extract_json
+        bad = example_plan()
+        bad["scenes"][2]["characters"][0]["id"] = "PURPLE"
+        with self.assertRaises(PlanRejected):
+            generate_valid_plan(lambda s, m: json.dumps(bad), extract_json, "s", "u", max_repairs=2)
+
+    def test_no_api_key_means_blocked_not_failed(self):
+        import os
+        from pilo_studio.cli import _make_llm
+        old = os.environ.pop("ANTHROPIC_API_KEY", None)
+        try:
+            self.assertIsNone(_make_llm())
+        finally:
+            if old: os.environ["ANTHROPIC_API_KEY"] = old
+
+
 if __name__ == "__main__":
     unittest.main()

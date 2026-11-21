@@ -127,14 +127,27 @@ class Orchestrator:
                     "No hay plan.json ni proveedor LLM. Genera el plan con el prompt del "
                     "Agente Guionista (`pilo system-prompt`) y cárgalo con `pilo new --plan archivo.json`."
                 )
+            from ..agents.generate import PlanRejected, generate_valid_plan
             from ..agents.scriptwriter import build_system_prompt, build_user_prompt
             meta = self.p.read_json("request.json")
-            plan = self.llm.generate_plan(
-                build_system_prompt(meta["brand"], meta["format"]),
-                build_user_prompt(meta["brand"], meta["format"], meta.get("topic")),
-            )
-            self.costs.add("PLAN", self.llm.name, self.llm.estimate_usd())
+            rounds = {"n": 0}
+
+            def _count(attempt, report):
+                rounds["n"] = attempt + 1
+                self.costs.add("PLAN", self.llm.name, self.llm.estimate_usd(), note=f"ronda {attempt + 1}")
+
+            try:
+                plan, _ = generate_valid_plan(
+                    self.llm.complete, self.llm.parse,
+                    build_system_prompt(meta["brand"], meta["format"]),
+                    build_user_prompt(meta["brand"], meta["format"], meta.get("topic")),
+                    max_repairs=self.cfg.get("plan_max_repairs", 2), on_attempt=_count)
+            except PlanRejected as e:
+                self.p.write_text("qa_plan.txt", e.report.summary() + "\n")
+                raise QAFailed(str(e)) from None
             self.p.write_json("plan.json", plan)
+            if rounds["n"] > 1:
+                self.p.log(f"PLAN corregido en {rounds['n']} rondas")
         plan = self.plan
         # Separación de artefactos del Tubo (pasos 1, 2 y 3)
         self.p.write_json("00_idea.json", {

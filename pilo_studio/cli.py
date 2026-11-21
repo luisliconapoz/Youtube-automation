@@ -21,7 +21,7 @@ from .core.brand import active_brands, check_character_exclusivity, load_registr
 from .core.formats import decide_format
 from .core.paths import OUTPUT_DIR
 from .ideas.registry import IdeaRegistry
-from .pipeline.orchestrator import Orchestrator
+from .pipeline.orchestrator import Orchestrator, load_config
 from .pipeline.project import Project
 from .pipeline.state import ORDER, PipelineState, Stage
 from .qa.validator import validate_plan
@@ -78,7 +78,33 @@ def _run(project: Project, until: str | None):
     return 0 if status.value in ("done", "blocked") else 1
 
 
+def _make_llm():
+    """Claude si hay ANTHROPIC_API_KEY; si no, None (la etapa PLAN queda BLOCKED con instrucciones)."""
+    import os
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+    from .providers.llm_claude import ClaudeLLM
+    cfg = load_config()["llm_claude"]
+    return ClaudeLLM(model=cfg["model"], max_tokens=cfg["max_tokens"],
+                     est_usd_per_plan=cfg["est_usd_per_plan"])
+
+
+def _run_generated(a):
+    """pilo new --brand X --format Y [--topic ...]: el Agente Guionista genera el plan."""
+    from .agents.scriptwriter import build_user_prompt
+    from .core.brand import load_brand
+    brand = load_brand(a.brand)
+    project = Project.create(brand.id, a.format, a.topic or brand.niche)
+    project.write_json("request.json", {"brand": brand.id, "format": a.format, "topic": a.topic})
+    status = Orchestrator(project, llm=_make_llm()).run(until=Stage(a.until) if a.until else None)
+    _print_status(project)
+    print(f"\nResultado: {status.value}")
+    return 0 if status.value in ("done", "blocked") else 1
+
+
 def cmd_new(a):
+    if a.brand:
+        return _run_generated(a)
     plan = json.loads(Path(a.plan).read_text(encoding="utf-8"))
     r = validate_plan(plan)
     if not r.ok:
@@ -130,7 +156,10 @@ def main(argv=None):
 
     stages = [s.value for s in Stage]
     p = sub.add_parser("new")
-    p.add_argument("--plan", required=True)
+    p.add_argument("--plan")
+    p.add_argument("--brand")
+    p.add_argument("--format", choices=["LONG", "SHORT"], default="SHORT")
+    p.add_argument("--topic")
     p.add_argument("--until", choices=stages)
     p.set_defaults(fn=cmd_new)
 

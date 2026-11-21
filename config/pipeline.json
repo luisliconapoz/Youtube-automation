@@ -29,5 +29,12 @@
     "max_per_request": "max",
     "continue_until_complete": true,
     "_doc": "Guías Google Flow: generar el máximo número de imágenes por petición y continuar automáticamente hasta completar todas (001, 002, 003...). Nunca adjuntar _GUIA_VISUAL_contiene_texto.png al generador: tiene texto."
-  }
+  },
+  "llm_claude": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 16000,
+    "est_usd_per_plan": 0.1,
+    "_doc": "Activar con export ANTHROPIC_API_KEY=... Ajustar est_usd_per_plan con el gasto real."
+  },
+  "plan_max_repairs": 2
 }

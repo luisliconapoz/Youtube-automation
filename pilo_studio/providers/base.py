@@ -21,9 +21,16 @@ class ProviderResult:
 class LLMProvider(ABC):
     name = "llm"
 
-    @abstractmethod
+    def complete(self, system: str, messages: list[dict]) -> str:
+        raise NotImplementedError
+
+    def parse(self, text: str) -> dict:
+        from .llm_claude import extract_json
+        return extract_json(text)
+
     def generate_plan(self, system_prompt: str, user_prompt: str) -> dict:
         """Devuelve el plan de video (dict que cumple schemas/video_plan.schema.json)."""
+        return self.parse(self.complete(system_prompt, [{"role": "user", "content": user_prompt}]))
 
     def estimate_usd(self) -> float:
         return 0.0
