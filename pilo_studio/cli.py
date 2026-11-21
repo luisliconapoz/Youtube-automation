@@ -72,8 +72,9 @@ def _print_status(project: Project):
         print(f"  Costo acumulado: ${sum(e['usd'] for e in json.loads(costs.read_text())):.2f}")
 
 
-def _run(project: Project, until: str | None):
-    status = Orchestrator(project).run(until=Stage(until) if until else None)
+def _run(project: Project, until: str | None, test_images: bool = False):
+    brand_id = project.brand_dir.name
+    status = Orchestrator(project, **_providers(brand_id, test_images)).run(until=Stage(until) if until else None)
     _print_status(project)
     print(f"\nResultado: {status.value}")
     return 0 if status.value in ("done", "blocked") else 1
@@ -90,6 +91,22 @@ def _make_llm():
                      est_usd_per_plan=cfg["est_usd_per_plan"])
 
 
+def _providers(brand_id: str, test_images: bool) -> dict:
+    """Herramientas gratis conectadas: Kokoro (voz) y ffmpeg (montaje). Imágenes de prueba opcionales."""
+    out = {}
+    try:
+        from .providers.tts_kokoro import KokoroTTS
+        out["tts"] = KokoroTTS()
+    except ImportError:
+        print("Aviso: kokoro-onnx no instalado (pip install kokoro-onnx soundfile)")
+    from .providers.render_ffmpeg import FFmpegRenderer
+    out["renderer"] = FFmpegRenderer()
+    if test_images:
+        from .providers.image_placeholder import PlaceholderImages
+        out["image"] = PlaceholderImages(brand_id)
+    return out
+
+
 def _run_generated(a):
     """pilo new --brand X --format Y [--topic ...]: el Agente Guionista genera el plan."""
     from .agents.scriptwriter import build_user_prompt
@@ -97,7 +114,8 @@ def _run_generated(a):
     brand = load_brand(a.brand)
     project = Project.create(brand.id, a.format, a.topic or brand.niche)
     project.write_json("request.json", {"brand": brand.id, "format": a.format, "topic": a.topic})
-    status = Orchestrator(project, llm=_make_llm()).run(until=Stage(a.until) if a.until else None)
+    status = Orchestrator(project, llm=_make_llm(), **_providers(brand.id, a.test_images)).run(
+        until=Stage(a.until) if a.until else None)
     _print_status(project)
     print(f"\nResultado: {status.value}")
     return 0 if status.value in ("done", "blocked") else 1
@@ -116,7 +134,7 @@ def cmd_batch(a):
     for brand_id in batch_order(brands, a.count):
         project = Project.create(brand_id, a.format, load_brand(brand_id).niche)
         project.write_json("request.json", {"brand": brand_id, "format": a.format, "topic": None})
-        status = Orchestrator(project, llm=llm).run()
+        status = Orchestrator(project, llm=llm, **_providers(brand_id, a.test_images)).run()
         rows.append((brand_id, project.root.name, status.value))
     for brand_id, name, st in rows:
         print(f"{brand_id:<12} {st:<8} {name}")
@@ -134,14 +152,14 @@ def cmd_new(a):
         return 1
     project = Project.create(plan["brand"], plan["format"], plan["title"])
     project.write_json("plan.json", plan)
-    return _run(project, a.until)
+    return _run(project, a.until, a.test_images)
 
 
 def cmd_run(a):
     project = Project(Path(a.project))
     if a.reset_from:
         PipelineState(project.path("state.json")).reset_from(Stage(a.reset_from))
-    return _run(project, a.until)
+    return _run(project, a.until, a.test_images)
 
 
 def cmd_status(a):
@@ -177,6 +195,7 @@ def main(argv=None):
 
     stages = [s.value for s in Stage]
     p = sub.add_parser("new")
+    p.add_argument("--test-images", action="store_true", help="imágenes de PRUEBA gratis (no publicar)")
     p.add_argument("--plan")
     p.add_argument("--brand")
     p.add_argument("--format", choices=["LONG", "SHORT"], default="SHORT")
@@ -185,11 +204,13 @@ def main(argv=None):
     p.set_defaults(fn=cmd_new)
 
     p = sub.add_parser("batch")
+    p.add_argument("--test-images", action="store_true", help="imágenes de PRUEBA gratis (no publicar)")
     p.add_argument("--count", type=int, default=1, help="rondas: un video por canal activo en cada una")
     p.add_argument("--format", choices=["LONG", "SHORT"], default="LONG")
     p.set_defaults(fn=cmd_batch)
 
     p = sub.add_parser("run")
+    p.add_argument("--test-images", action="store_true", help="imágenes de PRUEBA gratis (no publicar)")
     p.add_argument("project")
     p.add_argument("--until", choices=stages)
     p.add_argument("--reset-from", choices=stages)

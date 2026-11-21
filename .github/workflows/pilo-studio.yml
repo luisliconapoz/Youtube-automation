@@ -11,6 +11,9 @@ on:
       format:
         description: "LONG o SHORT"
         default: "LONG"
+      test_images:
+        description: "Usar imágenes de PRUEBA (true/false)"
+        default: "false"
 
 jobs:
   produce:
@@ -27,14 +30,21 @@ jobs:
       - name: Dependencias
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          pip install -q pillow
+          pip install -q pillow numpy soundfile kokoro-onnx
+      - name: Cache modelo de voz (Kokoro)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pilo/kokoro
+          key: kokoro-v1.0-int8
       - name: Tests
         run: python -m unittest discover -s tests
       - name: Lote
         run: |
           ROUNDS="${{ github.event.inputs.rounds || '1' }}"
           FORMAT="${{ github.event.inputs.format || 'LONG' }}"
-          python -m pilo_studio batch --count "$ROUNDS" --format "$FORMAT"
+          EXTRA=""
+          [ "${{ github.event.inputs.test_images }}" = "true" ] && EXTRA="--test-images"
+          python -m pilo_studio batch --count "$ROUNDS" --format "$FORMAT" $EXTRA
       - name: Subir a Google Drive
         if: ${{ secrets.RCLONE_CONF != '' }}
         env:

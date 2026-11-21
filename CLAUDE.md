@@ -21,10 +21,15 @@ Largos 7–15 min (prom. 8–10), ~1 imagen cada 5 s (100–300 imágenes). Shor
 - Imágenes: no hay API gratis real. Opciones: GPU alquilada por lote o pagar al tener ingresos. Pendiente decidir.
 - Carpeta final: Google Drive (u OneDrive) vía rclone.
 
-## Siguiente (plan de 1 h aprobado)
-1. Proveedor voz Kokoro + quitar silencios. 2. Mezcla audio ffmpeg (config/audio.json).
-3. Remotion render desde timeline.json. 4. Imágenes de PRUEBA (placeholder, no publicar).
-5. Prueba completa del Short de ejemplo hasta final.mp4. 6. Actualizar workflow.
+## Tubo completo funcionando (prueba E2E OK: Short 57.8 s, $0, ~2.5 min)
+- Voz: `providers/tts_kokoro.py` (kokoro-onnx, CPU, gratis; auto-acelera si se pasa del formato, máx. x1.2).
+- Mezcla: `media/audio_mix.py` (voz+música `assets/music/`+SFX `assets/sfx/`, ducking, -14 LUFS).
+- Montaje: `providers/render_ffmpeg.py` (zoom/paneo, subtítulos 3 palabras en Shorts). Remotion = mejora futura.
+- Imágenes de PRUEBA: `providers/image_placeholder.py` (`--test-images`, NO publicar).
+- Comandos: `pilo new --plan X --test-images`, `pilo batch --count N --test-images`.
+
+## Falta
+Imágenes reales (proveedor), clave Claude, música/SFX con licencia, Google Drive (rclone), Notion.
 
 ## Pendiente del usuario
 Clave API Claude ($5, sin auto-reload) vía formulario seguro; Drive; Notion; decisión imágenes.
@@ -41,7 +46,8 @@ Clave API Claude ($5, sin auto-reload) vía formulario seguro; Drive; Notion; de
 | Bucle de corrección del plan | `pilo_studio/agents/generate.py` |
 | Prompts de imagen | `pilo_studio/prompts/image_prompt.py` |
 | Etapas del Tubo, reintentos, costos | `pilo_studio/pipeline/orchestrator.py`, `state.py`, `project.py` |
-| Conectar herramientas (imagen/voz/render) | `pilo_studio/providers/base.py`; Claude en `llm_claude.py` |
+| Conectar herramientas (imagen/voz/render) | `pilo_studio/providers/` (base, llm_claude, tts_kokoro, render_ffmpeg, image_placeholder) |
+| Mezcla de audio | `pilo_studio/media/audio_mix.py` |
 | Anti-repetición de ideas | `pilo_studio/ideas/registry.py` |
 | Comandos | `pilo_studio/cli.py` (`python -m pilo_studio …`) |
 | Config | `config/pipeline.json` (presupuesto, reintentos, LLM), `config/audio.json` (mezcla) |

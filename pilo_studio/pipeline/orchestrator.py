@@ -228,7 +228,25 @@ class Orchestrator:
         for s in todo:
             res = self.tts.synthesize(s["narration"], brand.voice, self.p.voice_path(s["number"]))
             self.costs.add("VOICE", self.tts.name, res.usd, len(s["narration"]), num(s["number"]))
-        return f"{len(todo)} clips"
+        return f"{len(todo)} clips" + self._fit_voice_to_format(plan)
+
+    def _fit_voice_to_format(self, plan) -> str:
+        """Si la locución real se pasa del máximo del formato, la acelera lo justo (máx. +20 %)."""
+        import subprocess
+        from ..qa.image_checks import wav_duration
+        fmt = get_format(plan["format"])
+        clips = [self.p.voice_path(s["number"]) for s in plan["scenes"]]
+        gap = 0.15
+        total = sum((wav_duration(c) or 0) + gap for c in clips)
+        limit = fmt.max_seconds - 1.0
+        if total <= limit:
+            return ""
+        factor = min(total / limit * 1.01, 1.2)
+        for c in clips:
+            tmp = c.with_suffix(".tmp.wav")
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(c), "-filter:a", f"atempo={factor:.3f}", str(tmp)], check=True)
+            tmp.replace(c)
+        return f" · acelerada x{factor:.2f} ({total:.1f}s → {total / factor:.1f}s)"
 
     def stage_subtitles(self):
         """SRT + timeline.json (insumo de Remotion). Usa la duración real del audio si existe."""
@@ -238,7 +256,16 @@ class Orchestrator:
         for s in plan["scenes"]:
             real = wav_duration(self.p.voice_path(s["number"]))
             dur = max(real + 0.15, 0.8) if real else float(s["duration_s"])  # 0.15s de respiro
-            srt += [str(s["number"]), f"{_srt_time(t)} --> {_srt_time(t + dur)}", s["narration"], ""]
+            # SHORT: bloques de máx. 3 palabras (estilo palabra a palabra); LONG: frase completa
+            words = s["narration"].split()
+            size = 3 if plan["format"] == "SHORT" else len(words) or 1
+            chunks = [" ".join(words[i:i + size]) for i in range(0, len(words), size)] or [""]
+            weights = [len(c) for c in chunks]
+            ct = t
+            for c, w_ in zip(chunks, weights):
+                cd = dur * w_ / max(sum(weights), 1)
+                srt += [str(len(srt) // 4 + 1), f"{_srt_time(ct)} --> {_srt_time(ct + cd)}", c, ""]
+                ct += cd
             timeline.append({
                 "number": s["number"], "start": round(t, 3), "duration": round(dur, 3),
                 "image": f"04_images/{num(s['number'])}.png",
@@ -256,7 +283,9 @@ class Orchestrator:
         return f"{t:.1f}s"
 
     def stage_audio_mix(self):
-        raise ProviderNotConfigured("Mezcla de audio (voz + música sin copyright + SFX) — Fase 3 del plan.")
+        from ..media.audio_mix import mix
+        mix(self.p.root, self.p.read_json("timeline.json"), self.p.dir("audio") / "mix.wav")
+        return "mix.wav"
 
     def stage_render(self):
         if not self.renderer:
