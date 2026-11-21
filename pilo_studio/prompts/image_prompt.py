@@ -44,7 +44,9 @@ def reference_images_for(brand_id: str, char_id: str, refs_dir: Path = REFERENCE
     folder = refs_dir / brand_id / char_id
     if not folder.is_dir():
         return []
-    return sorted(str(p) for p in folder.iterdir() if p.suffix.lower() in _IMG_EXT)
+    # Solo ref_*: las hojas de expresiones (cuadrículas) no se adjuntan a escenas
+    return sorted(str(p) for p in folder.iterdir()
+                  if p.suffix.lower() in _IMG_EXT and p.name.lower().startswith("ref"))
 
 
 def _deidentify(text: str, brand: Brand) -> str:
