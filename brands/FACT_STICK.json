@@ -24,42 +24,82 @@
     "BLUE": {
       "color_name": "Cian",
       "hex": "#00E5FF",
-      "design": "stickman with a single cyan hair tuft on top of the head",
-      "accessories": ["cyan hair tuft"],
-      "personality": ["curioso", "reflexivo", "claro"],
-      "role": "Narrador principal. Guía las historias, presenta los conceptos y explica los temas principales."
+      "design": "stickman with a single spiky cyan hair tuft on top of the head, friendly smile",
+      "accessories": [
+        "spiky hair tuft"
+      ],
+      "personality": [
+        "curioso",
+        "reflexivo",
+        "claro"
+      ],
+      "role": "Narrador principal. Guía las historias, presenta los conceptos y explica los temas principales.",
+      "color_en": "cyan"
     },
     "GREEN": {
       "color_name": "Verde",
       "hex": "#39FF14",
-      "design": "stickman with a calm composed posture",
+      "design": "plain round-headed stickman, calm smart look, often raising an index finger",
       "accessories": [],
-      "personality": ["inteligente", "analítico", "tranquilo"],
-      "role": "Inversiones y crecimiento. Representa las inversiones, el crecimiento financiero y las estrategias a largo plazo."
+      "personality": [
+        "inteligente",
+        "analítico",
+        "tranquilo"
+      ],
+      "role": "Inversiones y crecimiento. Representa las inversiones, el crecimiento financiero y las estrategias a largo plazo.",
+      "color_en": "bright green"
     },
     "PINK": {
       "color_name": "Rosa",
-      "hex": "#FF3EA5",
-      "design": "feminine stick figure silhouette with pink hair",
-      "accessories": ["pink hair"],
-      "personality": ["enérgica", "amigable", "entusiasta"],
-      "role": "Ejemplos y nuevas perspectivas. Aporta ejemplos, situaciones y perspectivas diferentes para hacer los conceptos cercanos."
+      "hex": "#FF3EC8",
+      "design": "feminine stick figure with shoulder-length pink hair and eyelashes",
+      "accessories": [
+        "shoulder-length hair",
+        "eyelashes"
+      ],
+      "personality": [
+        "enérgica",
+        "amigable",
+        "entusiasta"
+      ],
+      "role": "Ejemplos y nuevas perspectivas. Aporta ejemplos, situaciones y perspectivas diferentes para hacer los conceptos cercanos.",
+      "color_en": "hot pink"
     },
     "FARMER": {
       "color_name": "Amarillo",
-      "hex": "#FFE600",
-      "design": "stickman wearing a farmer straw hat, mustache, overalls, holding a pitchfork",
-      "accessories": ["farmer hat", "mustache", "overalls", "pitchfork"],
-      "personality": ["práctico", "sencillo", "realista"],
-      "role": "Persona cotidiana. Representa a la persona común y muestra situaciones reales, dudas y problemas cotidianos."
+      "hex": "#FFD400",
+      "design": "stickman with a wide-brim farmer straw hat, white mustache, overalls, holding a pitchfork",
+      "accessories": [
+        "farmer straw hat",
+        "white mustache",
+        "overalls",
+        "pitchfork"
+      ],
+      "personality": [
+        "práctico",
+        "sencillo",
+        "realista"
+      ],
+      "role": "Persona cotidiana. Representa a la persona común y muestra situaciones reales, dudas y problemas cotidianos.",
+      "color_en": "yellow"
     },
     "RICH": {
       "color_name": "Rojo",
       "hex": "#FF2A2A",
-      "design": "stickman wearing a top hat, a monocle and a red suit",
-      "accessories": ["top hat", "monocle", "red suit"],
-      "personality": ["seguro", "estratégico", "algo presumido"],
-      "role": "Perspectiva de los ricos. Representa a las élites, los grandes patrimonios y la perspectiva de quienes poseen capital."
+      "design": "stickman with a tall red top hat, gold monocle, dark suit with vest and red tie",
+      "accessories": [
+        "top hat",
+        "monocle",
+        "suit with vest",
+        "red tie"
+      ],
+      "personality": [
+        "seguro",
+        "estratégico",
+        "algo presumido"
+      ],
+      "role": "Perspectiva de los ricos. Representa a las élites, los grandes patrimonios y la perspectiva de quienes poseen capital.",
+      "color_en": "red"
     }
   },
   "voice": {
@@ -68,5 +108,6 @@
     "speed": 1.0,
     "notes": "Una sola voz de narrador por marca para consistencia. Definir voice_id al elegir la voz final."
   },
-  "open_questions": []
+  "open_questions": [],
+  "visual_guide": "references/FACT_STICK/_GUIA_VISUAL_contiene_texto.png"
 }

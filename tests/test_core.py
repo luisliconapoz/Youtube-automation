@@ -35,7 +35,18 @@ class TestBrands(unittest.TestCase):
         self.assertEqual(check_character_exclusivity(active_brands()), [])
 
     def test_alias_resolves(self):
-        self.assertEqual(load_brand("MONEY_HOUSE").character("brown").id, "CORAL")
+        self.assertEqual(load_brand("MONEY_HOUSE").character("coral").id, "BROWN")
+
+    def test_cast_matches_visual_guides(self):
+        self.assertEqual(set(load_brand("FACT_STICK").characters), {"BLUE", "GREEN", "PINK", "FARMER", "RICH"})
+        self.assertEqual(set(load_brand("WILD_MONEY").characters), {"ORANGE", "PURPLE", "WHITE", "TEAL"})
+        self.assertEqual(set(load_brand("MONEY_HOUSE").characters), {"CYAN", "LIME", "BROWN", "GRAY"})
+
+    def test_every_character_has_reference_image(self):
+        from pilo_studio.prompts.image_prompt import reference_images_for
+        for b in active_brands():
+            for cid in b.characters:
+                self.assertTrue(reference_images_for(b.id, cid), f"{b.id}/{cid} sin referencia")
 
 
 class TestValidator(unittest.TestCase):

@@ -19,6 +19,7 @@ class Character:
     personality: tuple[str, ...]
     role: str
     aliases: tuple[str, ...] = ()
+    color_en: str = ""
 
     def visual_description(self) -> str:
         """Descripción canónica para prompts de imagen (no varía nunca)."""
@@ -31,6 +32,8 @@ class Character:
         return f"the {self.color_name_en()} neon stickman"
 
     def color_name_en(self) -> str:
+        if self.color_en:
+            return self.color_en
         return {
             "#00E5FF": "cyan", "#39FF14": "green", "#FF3EA5": "pink",
             "#FFE600": "yellow", "#FF2A2A": "red", "#FF8C00": "orange",
@@ -92,6 +95,7 @@ def load_brand(brand_id: str, brands_dir: Path = BRANDS_DIR) -> Brand:
             personality=tuple(c.get("personality", [])),
             role=c["role"],
             aliases=tuple(a.upper() for a in c.get("aliases", [])),
+            color_en=c.get("color_en", ""),
         )
         for cid, c in data["characters"].items()
     }

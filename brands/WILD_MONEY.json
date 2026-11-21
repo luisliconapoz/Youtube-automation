@@ -20,47 +20,72 @@
   ],
   "rpm_tier": "high",
   "narrator": "ORANGE",
-  "color_rule": "Combinar los colores oficiales; ORANGE guía pero no debe ser el único personaje en pantalla durante tramos largos.",
+  "color_rule": "Combinar los 4 colores oficiales (naranja, morado, blanco, teal). ORANGE guía, pero no debe ser el único personaje durante tramos largos.",
   "characters": {
     "ORANGE": {
       "color_name": "Naranja",
       "hex": "#FF8C00",
-      "design": "stickman with a confident upright posture",
+      "design": "plain round-headed stickman with a confident friendly smile",
       "accessories": [],
-      "personality": ["curioso", "perspicaz", "directo"],
-      "role": "Narrador principal. Guía las historias y explica el mundo de los negocios durante gran parte del video."
+      "personality": [
+        "curioso",
+        "perspicaz",
+        "directo",
+        "le encanta desmenuzar cómo funcionan las empresas"
+      ],
+      "role": "Narrador principal. Guía las historias y explica el mundo de los negocios durante gran parte del video.",
+      "color_en": "orange"
     },
     "TEAL": {
       "color_name": "Verde azulado / Cian claro",
-      "hex": "#00C2B2",
-      "design": "stickman wearing a cap and an ID badge on a lanyard",
-      "accessories": ["cap", "ID badge"],
-      "personality": ["práctico", "cansado", "realista", "un poco escéptico"],
-      "role": "Trabajador cotidiano y cliente. Plantea las preguntas comunes de empleados y consumidores."
+      "hex": "#19E6F0",
+      "design": "stickman with a baseball cap and an ID badge on a lanyard, tired look",
+      "accessories": [
+        "baseball cap",
+        "ID badge on lanyard"
+      ],
+      "personality": [
+        "práctico",
+        "cansado",
+        "realista",
+        "un poco escéptico"
+      ],
+      "role": "Trabajador cotidiano y cliente. Plantea las preguntas comunes que haría una persona promedio.",
+      "color_en": "teal cyan"
     },
     "PURPLE": {
       "color_name": "Morado",
-      "hex": "#A64DFF",
-      "design": "stickman wearing a crown, a cape and a purple suit",
-      "accessories": ["crown", "cape", "purple suit"],
-      "personality": ["seguro", "ambicioso", "carismático", "calculador"],
-      "role": "Multimillonario y CEO. Representa a los grandes empresarios, fundadores y directores ejecutivos y muestra cómo piensan y deciden."
-    },
-    "LIME": {
-      "color_name": "Verde lima",
-      "hex": "#B6FF00",
-      "design": "stickman with slightly slouched tired posture",
-      "accessories": [],
-      "personality": ["práctico", "cansado", "realista", "escéptico"],
-      "role": "Trabajador cotidiano (interno). Representa a los empleados y plantea preguntas internas de la empresa."
+      "hex": "#C44DFF",
+      "design": "stickman with a gold crown, a flowing cape and a suit, smug half-closed eyes",
+      "accessories": [
+        "gold crown",
+        "cape",
+        "suit"
+      ],
+      "personality": [
+        "seguro",
+        "ambicioso",
+        "carismático",
+        "implacable"
+      ],
+      "role": "Multimillonario y CEO. Representa a los grandes empresarios, fundadores y directores ejecutivos y muestra cómo piensan y deciden.",
+      "color_en": "purple"
     },
     "WHITE": {
       "color_name": "Blanco",
       "hex": "#F5F5F5",
-      "design": "stickman wearing round glasses and holding a tablet showing a simple chart line",
-      "accessories": ["round glasses", "tablet with chart"],
-      "personality": ["inteligente", "preciso", "tranquilo", "curioso", "fácilmente impresionable como cliente"],
-      "role": "Estrategia y números; también cliente amigable que muestra decisiones de compra."
+      "design": "stickman with big round glasses holding a tablet that shows a simple rising chart line",
+      "accessories": [
+        "round glasses",
+        "tablet with rising chart line"
+      ],
+      "personality": [
+        "inteligente",
+        "preciso",
+        "tranquilo"
+      ],
+      "role": "Analista: explica números, modelos de negocio y estrategia; desglosa cómo ganan dinero las empresas.",
+      "color_en": "white"
     }
   },
   "voice": {
@@ -70,8 +95,24 @@
     "notes": "Una sola voz de narrador por marca para consistencia."
   },
   "open_questions": [
-    "TEAL y LIME comparten el rol de 'trabajador cotidiano'. Propuesta aplicada: TEAL = cliente/consumidor y trabajador de cara al público; LIME = empleado interno de la empresa. Confirmar.",
-    "WHITE tiene doble rol (estrategia/números y cliente). Propuesta aplicada: rol principal estrategia/números; usar como cliente solo cuando TEAL no encaje. Confirmar.",
-    "La gráfica en la tablet de WHITE debe ser solo una línea/barra SIN números ni texto (regla anti-texto)."
-  ]
+    "Aplicado según guía visual: elenco oficial ORANGE, PURPLE, WHITE, TEAL. LIME (trabajador) quedó reservado y desactivado. Confirmar.",
+    "La gráfica en la tablet de WHITE debe ser solo una línea/barras SIN números ni texto."
+  ],
+  "visual_guide": "references/WILD_MONEY/_GUIA_VISUAL_contiene_texto.png",
+  "reserved_characters": {
+    "LIME_WORKER": {
+      "color_name": "Verde lima",
+      "hex": "#B6FF00",
+      "design": "stickman with slightly slouched tired posture",
+      "accessories": [],
+      "personality": [
+        "práctico",
+        "cansado",
+        "realista",
+        "escéptico"
+      ],
+      "role": "Trabajador cotidiano (interno). Representa a los empleados y plantea preguntas internas de la empresa.",
+      "_why": "No aparece en la guía visual oficial de WILD MONEY y su ID chocaba con LIME de MONEY HOUSE. TEAL cubre su rol. Para usarlo: crea su referencia, renómbralo y muévelo a characters."
+    }
+  }
 }

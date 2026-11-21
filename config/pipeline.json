@@ -1,8 +1,18 @@
 {
   "_doc": "Configuración del Tubo. Presupuestos en USD por video; 0 = proveedor local/gratis.",
-  "retries": {"max_attempts": 3, "backoff_seconds": [5, 20, 60]},
-  "budget_usd_per_video": {"LONG": 3.00, "SHORT": 0.75},
-  "budget_usd_per_day": 25.00,
+  "retries": {
+    "max_attempts": 3,
+    "backoff_seconds": [
+      5,
+      20,
+      60
+    ]
+  },
+  "budget_usd_per_video": {
+    "LONG": 3.0,
+    "SHORT": 0.75
+  },
+  "budget_usd_per_day": 25.0,
   "providers": {
     "llm": "manual",
     "image": "manual",
@@ -14,5 +24,10 @@
     "image": "Orden de preferencia: open_generative_ai (local GPU, gratis) → google_flow → higgsfield (solo si hace falta).",
     "tts": "Orden de preferencia: kokoro (local, gratis) → voicestudio → elevenlabs (premium).",
     "render": "remotion (código) por defecto; adobe como alternativa."
+  },
+  "image_batch": {
+    "max_per_request": "max",
+    "continue_until_complete": true,
+    "_doc": "Guías Google Flow: generar el máximo número de imágenes por petición y continuar automáticamente hasta completar todas (001, 002, 003...). Nunca adjuntar _GUIA_VISUAL_contiene_texto.png al generador: tiene texto."
   }
 }
