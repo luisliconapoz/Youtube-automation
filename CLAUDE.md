@@ -28,3 +28,22 @@ Largos 7–15 min (prom. 8–10), ~1 imagen cada 5 s (100–300 imágenes). Shor
 
 ## Pendiente del usuario
 Clave API Claude ($5, sin auto-reload) vía formulario seguro; Drive; Notion; decisión imágenes.
+
+## Mapa de archivos (leer solo lo necesario)
+| Necesito… | Archivo |
+|---|---|
+| Personajes, colores, roles | `brands/<MARCA>.json`, `brands/channels.json` (10 slots) |
+| Reglas visuales compartidas | `pilo_studio/core/style.py` |
+| Duraciones, ritmo, LONG/SHORT | `pilo_studio/core/formats.py` |
+| Reglas de QA del plan | `pilo_studio/qa/validator.py` |
+| QA imágenes / MP4 | `pilo_studio/qa/image_checks.py` |
+| Prompt del guionista | `pilo_studio/agents/scriptwriter_system_prompt.md` (+ `scriptwriter.py`) |
+| Bucle de corrección del plan | `pilo_studio/agents/generate.py` |
+| Prompts de imagen | `pilo_studio/prompts/image_prompt.py` |
+| Etapas del Tubo, reintentos, costos | `pilo_studio/pipeline/orchestrator.py`, `state.py`, `project.py` |
+| Conectar herramientas (imagen/voz/render) | `pilo_studio/providers/base.py`; Claude en `llm_claude.py` |
+| Anti-repetición de ideas | `pilo_studio/ideas/registry.py` |
+| Comandos | `pilo_studio/cli.py` (`python -m pilo_studio …`) |
+| Config | `config/pipeline.json` (presupuesto, reintentos, LLM), `config/audio.json` (mezcla) |
+| Esquema del plan | `schemas/video_plan.schema.json`; ejemplo `examples/` |
+| Workflow nube | `.github/workflows/pilo-studio.yml` |
