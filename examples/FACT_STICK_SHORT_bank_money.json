@@ -1,0 +1,635 @@
+{
+  "brand": "FACT_STICK",
+  "format": "SHORT",
+  "topic": "Cómo los bancos crean dinero prestando tus depósitos",
+  "title": "Your Bank Barely Has Your Money",
+  "title_alternatives": [
+    "Where Your Bank Deposit Actually Goes",
+    "Banks Lend Money They Don't Hold"
+  ],
+  "format_rationale": "Un solo mecanismo sorprendente (préstamo de depósitos) que se entiende con hook → giro → payoff en menos de 60 s.",
+  "idea": {
+    "angle": "El dinero que crees guardado está prestado y multiplicado",
+    "promise": "Entender en 1 minuto dónde está realmente tu dinero",
+    "curiosity_gap": "¿Si el banco no tiene mi dinero, dónde está?",
+    "target_viewer": "Adulto joven con cuenta bancaria y poca educación financiera",
+    "rpm_reason": "Banca, ahorro y seguros de depósito atraen anunciantes financieros de alto CPM"
+  },
+  "structure": [
+    {
+      "section_id": "HOOK",
+      "type": "hook",
+      "start_s": 0,
+      "end_s": 2.0,
+      "purpose": "Afirmación chocante que contradice lo que el espectador cree",
+      "technique": "pattern interrupt + curiosity gap"
+    },
+    {
+      "section_id": "SETUP",
+      "type": "context",
+      "start_s": 2.0,
+      "end_s": 8.0,
+      "purpose": "Apuesta personal: son SUS ahorros",
+      "technique": "identificación (FARMER)"
+    },
+    {
+      "section_id": "BUILD",
+      "type": "chapter",
+      "start_s": 8.0,
+      "end_s": 34.5,
+      "purpose": "Mecanismo de creación de dinero en 3 golpes con mini-sorpresas",
+      "technique": "escalada + recompensa variable"
+    },
+    {
+      "section_id": "TWIST",
+      "type": "twist",
+      "start_s": 34.5,
+      "end_s": 46.5,
+      "purpose": "El riesgo (bank run) y la red de protección",
+      "technique": "contraste riesgo/protección"
+    },
+    {
+      "section_id": "LOOP",
+      "type": "loop",
+      "start_s": 46.5,
+      "end_s": 55.5,
+      "purpose": "Cierre que repite la frase del hook para el loop",
+      "technique": "loop line"
+    }
+  ],
+  "script": {
+    "full_text": "Your bank barely has your money. Wait, I deposited my savings there last week! Here is the trick nobody explains at school. Deposit a dollar, and the bank doesn't lock it away. It keeps a small slice and lends out the rest. And I happily borrow it to buy another building. The builder deposits that money in another bank. So that bank lends it out again? Like a copy machine? Exactly. One dollar becomes many dollars on paper. Economists call this money creation through lending. It fuels growth, houses and businesses when things go well. But what if everybody wants their money back at once? Then the bank simply doesn't have it. A bank run. Which is why I never keep everything in one place. Today deposit insurance and central banks stand behind the system. It's out working, multiplying across the economy. It is out working, moving, multiplying across the whole economy. A promise. Because your bank barely has your money. A promise. Because your bank has almost none of your money.",
+    "word_count": 172,
+    "estimated_seconds": 55.5
+  },
+  "scenes": [
+    {
+      "number": 1,
+      "section_id": "HOOK",
+      "duration_s": 2.0,
+      "narration": "Your bank barely has your money.",
+      "speaker": "BLUE",
+      "visual_idea": "BLUE opens an empty glowing bank vault",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Surprised",
+          "pose": "Pointing",
+          "action": "pointing into the empty vault",
+          "position": "left"
+        }
+      ],
+      "setting": "an open bank vault door",
+      "key_objects": [
+        "empty bank vault"
+      ],
+      "camera": "medium",
+      "motion": "pop_in",
+      "transition_in": "cut",
+      "emphasis_words": [],
+      "sfx": "impact"
+    },
+    {
+      "number": 2,
+      "section_id": "SETUP",
+      "duration_s": 3.0,
+      "narration": "Wait, I deposited my savings there last week!",
+      "speaker": "FARMER",
+      "visual_idea": "FARMER clutches an empty wallet in panic",
+      "characters": [
+        {
+          "id": "FARMER",
+          "expression": "Concerned",
+          "pose": "Questioning",
+          "action": "holding an empty wallet",
+          "position": "center"
+        }
+      ],
+      "setting": "simple bank counter",
+      "key_objects": [
+        "empty wallet"
+      ],
+      "camera": "close-up",
+      "motion": "shake",
+      "transition_in": "whoosh",
+      "emphasis_words": [
+        "savings"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 3,
+      "section_id": "SETUP",
+      "duration_s": 3.0,
+      "narration": "Here is the trick nobody explains at school.",
+      "speaker": "BLUE",
+      "visual_idea": "BLUE leans toward the viewer like sharing a secret",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Smug",
+          "pose": "Explaining",
+          "action": "hand near mouth as if whispering",
+          "position": "center"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [],
+      "camera": "close-up",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "trick"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 4,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "Deposit a dollar, and the bank doesn't lock it away.",
+      "speaker": "BLUE",
+      "visual_idea": "a single glowing coin slides past a closed vault",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Talking",
+          "pose": "Presenting",
+          "action": "presenting a single coin",
+          "position": "left"
+        }
+      ],
+      "setting": "a closed vault in the background",
+      "key_objects": [
+        "single coin",
+        "closed vault"
+      ],
+      "camera": "medium",
+      "motion": "pan_right",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "lock"
+      ],
+      "sfx": "coin"
+    },
+    {
+      "number": 5,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "It keeps a small slice and lends out the rest.",
+      "speaker": "BLUE",
+      "visual_idea": "coin pile splits into a tiny stack and a large flying stack",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Serious",
+          "pose": "Pointing",
+          "action": "pointing at the large flying stack",
+          "position": "left"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "small coin stack",
+        "large coin stack"
+      ],
+      "camera": "wide",
+      "motion": "static",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "lends"
+      ],
+      "sfx": "whoosh",
+      "on_screen_text": "10% kept"
+    },
+    {
+      "number": 6,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "And I happily borrow it to buy another building.",
+      "speaker": "RICH",
+      "visual_idea": "RICH carries a big bag of coins toward a tall building",
+      "characters": [
+        {
+          "id": "RICH",
+          "expression": "Smug",
+          "pose": "Thumbs up",
+          "action": "carrying a big coin bag",
+          "position": "right"
+        }
+      ],
+      "setting": "a simple tall building silhouette",
+      "key_objects": [
+        "coin bag",
+        "tall building"
+      ],
+      "camera": "medium",
+      "motion": "pan_left",
+      "transition_in": "whoosh",
+      "emphasis_words": [
+        "building"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 7,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "The builder deposits that money in another bank.",
+      "speaker": "BLUE",
+      "visual_idea": "coins flow from one small bank into a second small bank",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Thinking",
+          "pose": "Explaining",
+          "action": "tracing the coin flow with a finger",
+          "position": "left"
+        }
+      ],
+      "setting": "two small bank buildings side by side",
+      "key_objects": [
+        "two small banks",
+        "coin stream"
+      ],
+      "camera": "wide",
+      "motion": "pan_right",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "another"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 8,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "So that bank lends it out again? Like a copy machine?",
+      "speaker": "PINK",
+      "visual_idea": "PINK watches coins multiply like copies",
+      "characters": [
+        {
+          "id": "PINK",
+          "expression": "Excited",
+          "pose": "Questioning",
+          "action": "palms up next to multiplying coins",
+          "position": "center"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "multiplying coins"
+      ],
+      "camera": "medium",
+      "motion": "pop_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "again"
+      ],
+      "sfx": "pop"
+    },
+    {
+      "number": 9,
+      "section_id": "BUILD",
+      "duration_s": 2.5,
+      "narration": "Exactly. One dollar becomes many dollars on paper.",
+      "speaker": "BLUE",
+      "visual_idea": "one coin turns into a fan of ghostly coins",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Happy",
+          "pose": "Thumbs up",
+          "action": "next to the coin fan",
+          "position": "left"
+        },
+        {
+          "id": "PINK",
+          "expression": "Surprised",
+          "pose": "Pointing",
+          "action": "pointing at the ghost coins",
+          "position": "right"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "ghostly coin fan"
+      ],
+      "camera": "wide",
+      "motion": "slow_zoom_out",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "many"
+      ],
+      "sfx": "ding",
+      "on_screen_text": "1 → 10"
+    },
+    {
+      "number": 10,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "Economists call this money creation through lending.",
+      "speaker": "GREEN",
+      "visual_idea": "GREEN calmly gestures at a glowing chain of coins",
+      "characters": [
+        {
+          "id": "GREEN",
+          "expression": "Serious",
+          "pose": "Explaining",
+          "action": "gesturing at a coin chain",
+          "position": "center"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "coin chain"
+      ],
+      "camera": "medium",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "creation"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 11,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "It fuels growth, houses and businesses when things go well.",
+      "speaker": "GREEN",
+      "visual_idea": "a small sprout grows out of a coin stack",
+      "characters": [
+        {
+          "id": "GREEN",
+          "expression": "Happy",
+          "pose": "Presenting",
+          "action": "presenting the sprouting coins",
+          "position": "left"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "sprouting coin stack"
+      ],
+      "camera": "medium",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "growth"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 12,
+      "section_id": "BUILD",
+      "duration_s": 3.0,
+      "narration": "But what if everybody wants their money back at once?",
+      "speaker": "FARMER",
+      "visual_idea": "a long line of small stick figures forms in front of a bank door",
+      "characters": [
+        {
+          "id": "FARMER",
+          "expression": "Skeptical",
+          "pose": "Arms crossed",
+          "action": "standing at the front of the line",
+          "position": "left"
+        }
+      ],
+      "setting": "a bank door with a queue",
+      "key_objects": [
+        "bank door"
+      ],
+      "camera": "wide",
+      "motion": "pan_right",
+      "transition_in": "whoosh",
+      "emphasis_words": [
+        "everybody"
+      ],
+      "sfx": "riser"
+    },
+    {
+      "number": 13,
+      "section_id": "TWIST",
+      "duration_s": 3.0,
+      "narration": "Then the bank simply doesn't have it. A bank run.",
+      "speaker": "BLUE",
+      "visual_idea": "the bank door cracks with neon light",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Concerned",
+          "pose": "Pointing",
+          "action": "pointing at the cracking door",
+          "position": "left"
+        }
+      ],
+      "setting": "a bank door splitting",
+      "key_objects": [
+        "cracking bank door"
+      ],
+      "camera": "medium",
+      "motion": "shake",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "run"
+      ],
+      "sfx": "impact",
+      "on_screen_text": "Bank run"
+    },
+    {
+      "number": 14,
+      "section_id": "TWIST",
+      "duration_s": 3.0,
+      "narration": "Which is why I never keep everything in one place.",
+      "speaker": "RICH",
+      "visual_idea": "RICH splits coins into several small vaults",
+      "characters": [
+        {
+          "id": "RICH",
+          "expression": "Serious",
+          "pose": "Explaining",
+          "action": "dropping coins into small vaults",
+          "position": "center"
+        }
+      ],
+      "setting": "row of tiny vaults",
+      "key_objects": [
+        "tiny vaults"
+      ],
+      "camera": "medium",
+      "motion": "static",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "never"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 15,
+      "section_id": "TWIST",
+      "duration_s": 3.0,
+      "narration": "Today deposit insurance and central banks stand behind the system.",
+      "speaker": "BLUE",
+      "visual_idea": "a large neon shield covers a small bank",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Neutral",
+          "pose": "Presenting",
+          "action": "presenting the shield",
+          "position": "left"
+        }
+      ],
+      "setting": "a small bank under a shield",
+      "key_objects": [
+        "shield",
+        "small bank"
+      ],
+      "camera": "wide",
+      "motion": "slow_zoom_out",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "insurance"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 16,
+      "section_id": "TWIST",
+      "duration_s": 3.0,
+      "narration": "It's out working, multiplying across the economy.",
+      "speaker": "PINK",
+      "visual_idea": "PINK peeks into a vault that holds only a few coins",
+      "characters": [
+        {
+          "id": "PINK",
+          "expression": "Thinking",
+          "pose": "Thinking",
+          "action": "peeking into a vault",
+          "position": "center"
+        }
+      ],
+      "setting": "an open vault",
+      "key_objects": [
+        "vault with few coins"
+      ],
+      "camera": "close-up",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "never"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 17,
+      "section_id": "LOOP",
+      "duration_s": 3.0,
+      "narration": "It is out working, moving, multiplying across the whole economy.",
+      "speaker": "BLUE",
+      "visual_idea": "coins race along glowing roads between tiny buildings",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Excited",
+          "pose": "Celebrating",
+          "action": "arms up above the coin roads",
+          "position": "center"
+        }
+      ],
+      "setting": "miniature city of simple buildings",
+      "key_objects": [
+        "coin streams",
+        "tiny buildings"
+      ],
+      "camera": "wide",
+      "motion": "pan_left",
+      "transition_in": "whoosh",
+      "emphasis_words": [
+        "multiplying"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 18,
+      "section_id": "LOOP",
+      "duration_s": 3.0,
+      "narration": "A promise. Because your bank barely has your money.",
+      "speaker": "FARMER",
+      "visual_idea": "FARMER stares at a glowing phone screen",
+      "characters": [
+        {
+          "id": "FARMER",
+          "expression": "Confused",
+          "pose": "Thinking",
+          "action": "holding a phone",
+          "position": "center"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "phone"
+      ],
+      "camera": "close-up",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "really"
+      ],
+      "sfx": "none"
+    },
+    {
+      "number": 19,
+      "section_id": "LOOP",
+      "duration_s": 3.0,
+      "narration": "A promise. Because your bank has almost none of your money.",
+      "speaker": "BLUE",
+      "visual_idea": "BLUE stands before the empty vault again",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Serious",
+          "pose": "Arms crossed",
+          "action": "standing before the empty vault",
+          "position": "left"
+        }
+      ],
+      "setting": "an open bank vault door",
+      "key_objects": [
+        "empty bank vault"
+      ],
+      "camera": "medium",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "emphasis_words": [
+        "promise"
+      ],
+      "sfx": "none"
+    }
+  ],
+  "audio": {
+    "music_mood": "curious minimal electronic pulse",
+    "music_bpm_range": [
+      105,
+      120
+    ],
+    "music_changes_at_s": [
+      37.5
+    ]
+  },
+  "publish_draft": {
+    "description_points": [
+      "Cómo los bancos prestan tus depósitos",
+      "Qué es un bank run",
+      "Qué protege tu dinero hoy"
+    ],
+    "tags": [
+      "banking",
+      "money",
+      "personal finance",
+      "how banks work"
+    ],
+    "pinned_comment": "Did you know this about your bank? Yes or no 👇"
+  }
+}

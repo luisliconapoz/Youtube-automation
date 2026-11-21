@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pilo_studio/video_plan.schema.json",
+  "title": "PILO STUDIO — Plan de video (salida del Agente Guionista)",
+  "type": "object",
+  "required": ["brand", "format", "topic", "title", "format_rationale", "idea", "structure", "script", "scenes", "audio"],
+  "properties": {
+    "brand": {"type": "string", "description": "ID de la marca, p. ej. FACT_STICK"},
+    "format": {"enum": ["LONG", "SHORT"]},
+    "topic": {"type": "string"},
+    "title": {"type": "string", "maxLength": 70},
+    "title_alternatives": {"type": "array", "items": {"type": "string", "maxLength": 70}, "maxItems": 5},
+    "thumbnail_concept": {"type": "string", "description": "Concepto de miniatura (solo LONG). Sin texto en la imagen generada; el texto se añade a mano."},
+    "format_rationale": {"type": "string"},
+    "idea": {
+      "type": "object",
+      "required": ["angle", "promise", "curiosity_gap", "target_viewer", "rpm_reason"],
+      "properties": {
+        "angle": {"type": "string"},
+        "promise": {"type": "string"},
+        "curiosity_gap": {"type": "string"},
+        "target_viewer": {"type": "string"},
+        "rpm_reason": {"type": "string"}
+      }
+    },
+    "structure": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["section_id", "type", "purpose", "start_s", "end_s"],
+        "properties": {
+          "section_id": {"type": "string"},
+          "type": {"enum": ["hook", "context", "chapter", "rehook", "twist", "cta", "payoff", "outro", "loop"]},
+          "purpose": {"type": "string"},
+          "technique": {"type": "string"},
+          "start_s": {"type": "number", "minimum": 0},
+          "end_s": {"type": "number", "minimum": 0}
+        }
+      }
+    },
+    "script": {
+      "type": "object",
+      "required": ["full_text"],
+      "properties": {
+        "full_text": {"type": "string"},
+        "word_count": {"type": "integer"},
+        "estimated_seconds": {"type": "number"}
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["number", "section_id", "duration_s", "narration", "visual_idea", "characters", "setting"],
+        "properties": {
+          "number": {"type": "integer", "minimum": 1},
+          "section_id": {"type": "string"},
+          "duration_s": {"type": "number", "exclusiveMinimum": 0},
+          "narration": {"type": "string", "description": "Frase exacta de locución que cubre esta imagen."},
+          "speaker": {"type": "string", "description": "Personaje que 'habla' (su pose debe ser Talking/Explaining si habla)."},
+          "visual_idea": {"type": "string", "description": "UNA sola idea visual principal, en inglés."},
+          "characters": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "required": ["id", "expression", "pose"],
+              "properties": {
+                "id": {"type": "string"},
+                "expression": {"enum": ["Neutral", "Happy", "Talking", "Surprised", "Confused", "Thinking", "Concerned", "Skeptical", "Excited", "Angry", "Serious", "Smug"]},
+                "pose": {"enum": ["Explaining", "Pointing", "Thinking", "Presenting", "Questioning", "Thumbs up", "Arms crossed", "Celebrating"]},
+                "action": {"type": "string"},
+                "position": {"enum": ["left", "center", "right"]}
+              }
+            }
+          },
+          "setting": {"type": "string", "description": "Escenario sencillo sobre fondo negro, en inglés, sin texto."},
+          "key_objects": {"type": "array", "items": {"type": "string"}, "maxItems": 3},
+          "camera": {"enum": ["wide", "medium", "close-up"]},
+          "motion": {"enum": ["static", "slow_zoom_in", "slow_zoom_out", "pan_left", "pan_right", "shake", "pop_in"]},
+          "transition_in": {"enum": ["cut", "fade", "whoosh", "slide_left", "slide_right", "zoom", "match_cut"]},
+          "on_screen_text": {"type": "string", "description": "Texto superpuesto en EDICIÓN (máx. 4 palabras). Nunca dentro de la imagen."},
+          "emphasis_words": {"type": "array", "items": {"type": "string"}},
+          "sfx": {"type": "string", "description": "SFX opcional: whoosh, pop, cash_register, coin, ding, riser, impact, click, none"}
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "required": ["music_mood"],
+      "properties": {
+        "music_mood": {"type": "string"},
+        "music_bpm_range": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+        "music_changes_at_s": {"type": "array", "items": {"type": "number"}}
+      }
+    },
+    "derivatives": {
+      "type": "array",
+      "description": "Solo LONG: Shorts derivables (Bloque 5).",
+      "items": {
+        "type": "object",
+        "required": ["source_scenes", "standalone_hook", "loop_line"],
+        "properties": {
+          "source_scenes": {"type": "array", "items": {"type": "integer"}},
+          "standalone_hook": {"type": "string"},
+          "loop_line": {"type": "string"},
+          "new_scenes_needed": {"type": "integer"}
+        }
+      }
+    },
+    "publish_draft": {
+      "type": "object",
+      "description": "BORRADOR de metadatos. La publicación es SIEMPRE manual.",
+      "properties": {
+        "description_points": {"type": "array", "items": {"type": "string"}},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "pinned_comment": {"type": "string"},
+        "chapters": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "id": "FACT_STICK",
+  "slot": 1,
+  "active": true,
+  "display_name": "FACT STICK",
+  "language": "en",
+  "niche": "Economía, finanzas, dinero e inversiones",
+  "focus": "Educación financiera explicada de manera sencilla, visual y entretenida: cómo funciona el dinero, cómo se mueve la economía y cómo funcionan los sistemas financieros.",
+  "topics": [
+    "Economía y sistemas financieros",
+    "Bancos y cómo generan dinero",
+    "Dinero y su funcionamiento",
+    "Inversiones y activos",
+    "Inflación y tasas de interés",
+    "Préstamos y deudas",
+    "Educación financiera",
+    "Construcción de riqueza",
+    "Estrategias de inversión"
+  ],
+  "rpm_tier": "high",
+  "narrator": "BLUE",
+  "color_rule": "Usar una combinación equilibrada de los colores oficiales: no usar solo azul/cian. BLUE no debe aparecer solo en más del 60% de las escenas.",
+  "characters": {
+    "BLUE": {
+      "color_name": "Cian",
+      "hex": "#00E5FF",
+      "design": "stickman with a single cyan hair tuft on top of the head",
+      "accessories": ["cyan hair tuft"],
+      "personality": ["curioso", "reflexivo", "claro"],
+      "role": "Narrador principal. Guía las historias, presenta los conceptos y explica los temas principales."
+    },
+    "GREEN": {
+      "color_name": "Verde",
+      "hex": "#39FF14",
+      "design": "stickman with a calm composed posture",
+      "accessories": [],
+      "personality": ["inteligente", "analítico", "tranquilo"],
+      "role": "Inversiones y crecimiento. Representa las inversiones, el crecimiento financiero y las estrategias a largo plazo."
+    },
+    "PINK": {
+      "color_name": "Rosa",
+      "hex": "#FF3EA5",
+      "design": "feminine stick figure silhouette with pink hair",
+      "accessories": ["pink hair"],
+      "personality": ["enérgica", "amigable", "entusiasta"],
+      "role": "Ejemplos y nuevas perspectivas. Aporta ejemplos, situaciones y perspectivas diferentes para hacer los conceptos cercanos."
+    },
+    "FARMER": {
+      "color_name": "Amarillo",
+      "hex": "#FFE600",
+      "design": "stickman wearing a farmer straw hat, mustache, overalls, holding a pitchfork",
+      "accessories": ["farmer hat", "mustache", "overalls", "pitchfork"],
+      "personality": ["práctico", "sencillo", "realista"],
+      "role": "Persona cotidiana. Representa a la persona común y muestra situaciones reales, dudas y problemas cotidianos."
+    },
+    "RICH": {
+      "color_name": "Rojo",
+      "hex": "#FF2A2A",
+      "design": "stickman wearing a top hat, a monocle and a red suit",
+      "accessories": ["top hat", "monocle", "red suit"],
+      "personality": ["seguro", "estratégico", "algo presumido"],
+      "role": "Perspectiva de los ricos. Representa a las élites, los grandes patrimonios y la perspectiva de quienes poseen capital."
+    }
+  },
+  "voice": {
+    "provider": "kokoro",
+    "voice_id": null,
+    "speed": 1.0,
+    "notes": "Una sola voz de narrador por marca para consistencia. Definir voice_id al elegir la voz final."
+  },
+  "open_questions": []
+}

@@ -1,0 +1,121 @@
+{
+  "id": "MONEY_HOUSE",
+  "slot": 3,
+  "active": true,
+  "display_name": "MONEY HOUSE",
+  "language": "en",
+  "niche": "Bienes raíces, seguros, crédito y deudas",
+  "focus": "Educación financiera enfocada en las propiedades, las viviendas, los préstamos y las decisiones económicas relacionadas con el hogar. (Ref. Guía Visual Money Lab)",
+  "topics": [
+    "Bienes raíces y propiedades",
+    "Compra y alquiler de viviendas",
+    "Hipotecas y financiamiento",
+    "Crédito y préstamos",
+    "Deudas y tasas de interés",
+    "Seguros y protección financiera",
+    "Inversiones inmobiliarias",
+    "Mercado de vivienda",
+    "Financiamiento de propiedades",
+    "Riesgos y protección económica"
+  ],
+  "rpm_tier": "high",
+  "narrator": "CYAN",
+  "color_rule": "Combinar los colores oficiales; CYAN guía pero rotar con CORAL, MINT, SILVER y TAN según el tema.",
+  "characters": {
+    "CYAN": {
+      "color_name": "Cian",
+      "hex": "#00E5FF",
+      "design": "stickman with a small glowing house icon on the chest",
+      "accessories": [
+        "house icon on chest"
+      ],
+      "personality": [
+        "amigable",
+        "curioso",
+        "práctico"
+      ],
+      "role": "Narrador principal. Guía las historias y explica los temas financieros del hogar.",
+      "aliases": [
+        "VIOLET"
+      ]
+    },
+    "MINT": {
+      "color_name": "Verde menta",
+      "hex": "#3DFFB4",
+      "design": "stickman wearing a cap and holding a calculator",
+      "accessories": [
+        "cap",
+        "calculator"
+      ],
+      "personality": [
+        "tranquilo",
+        "estricto",
+        "lógico"
+      ],
+      "role": "Crédito, préstamos y deudas. Explica las reglas, los intereses y las advertencias relacionadas con las deudas."
+    },
+    "CORAL": {
+      "color_name": "Coral",
+      "hex": "#FF6F61",
+      "design": "stickman holding a key, standing next to a small house",
+      "accessories": [
+        "key",
+        "small house"
+      ],
+      "personality": [
+        "enérgico",
+        "persuasivo",
+        "amigable"
+      ],
+      "role": "Bienes raíces. Presenta ejemplos de compra, alquiler, propiedades e hipotecas.",
+      "aliases": [
+        "BROWN"
+      ]
+    },
+    "SILVER": {
+      "color_name": "Plateado",
+      "hex": "#C0C7D0",
+      "design": "stickman holding a small shield",
+      "accessories": [
+        "shield"
+      ],
+      "personality": [
+        "precavido",
+        "protector",
+        "serio"
+      ],
+      "role": "Seguros y protección. Explica riesgos, coberturas y prevención de pérdidas."
+    },
+    "TAN": {
+      "color_name": "Beige",
+      "hex": "#D2B48C",
+      "design": "stickman wearing a collared shirt, holding a tiny house model",
+      "accessories": [
+        "collared shirt",
+        "tiny house model"
+      ],
+      "personality": [
+        "preocupado",
+        "esperanzado",
+        "práctico"
+      ],
+      "role": "Comprador o inquilino. Representa a las personas que buscan comprar o alquilar una vivienda y plantea dudas.",
+      "aliases": [
+        "GRAY"
+      ]
+    }
+  },
+  "voice": {
+    "provider": "kokoro",
+    "voice_id": null,
+    "speed": 1.0,
+    "notes": "Una sola voz de narrador por marca para consistencia."
+  },
+  "open_questions": [
+    "Narrador: la guía visual dice CIAN y la biblia dice VIOLETA. Aplicado: CYAN (#00E5FF). Ojo: FACT STICK también usa cian (BLUE); se diferencian por accesorio (mechón vs. casa en el pecho). Si prefieres VIOLETA cambia 'hex' a #8A5CFF.",
+    "MINT/LIME: aplicado MINT (#3DFFB4). 'LIME' NO se acepta como alias porque es un personaje exclusivo de WILD MONEY (los personajes jamás se mezclan).",
+    "CORAL/BROWN: aplicado CORAL (#FF6F61).",
+    "TAN/GRAY: aplicado TAN (#D2B48C).",
+    "Seguros: la guía visual los asigna a MINT y la biblia a SILVER. Aplicado: SILVER = seguros; MINT = crédito/deudas."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "_doc": "Registro modular de los 10 canales de PILO STUDIO. Solo los canales con active=true entran en producción. Para activar uno nuevo: crea brands/<ID>.json con su biblia (personajes exclusivos) y pon active=true aquí.",
+  "operating_mode": "PILOT_3",
+  "channels": [
+    {"slot": 1,  "id": "FACT_STICK",       "active": true,  "niche": "Economía, finanzas, dinero e inversiones"},
+    {"slot": 2,  "id": "WILD_MONEY",       "active": true,  "niche": "Negocios, multimillonarios, lujo y empresas"},
+    {"slot": 3,  "id": "MONEY_HOUSE",      "active": true,  "niche": "Bienes raíces, seguros, crédito y deudas"},
+    {"slot": 4,  "id": "SLOT_04_NUTRITION", "active": false, "niche": "Nutrición (propuesta)"},
+    {"slot": 5,  "id": "SLOT_05_FOOD",      "active": false, "niche": "Comida / economía de la comida (propuesta)"},
+    {"slot": 6,  "id": "SLOT_06_SELF_GROWTH", "active": false, "niche": "Progreso personal y productividad (propuesta)"},
+    {"slot": 7,  "id": "SLOT_07_TECH_AI",   "active": false, "niche": "Tecnología, IA y software como negocio (propuesta)"},
+    {"slot": 8,  "id": "SLOT_08_HEALTH",    "active": false, "niche": "Salud y longevidad (propuesta)"},
+    {"slot": 9,  "id": "SLOT_09_CAREER",    "active": false, "niche": "Carrera, salarios y empleo (propuesta)"},
+    {"slot": 10, "id": "SLOT_10_HISTORY_ECON", "active": false, "niche": "Historia económica y de imperios (propuesta)"}
+  ]
+}

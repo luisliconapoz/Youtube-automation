@@ -1,0 +1,30 @@
+{
+  "_doc": "Bloque 3 — Reglas de mezcla. Las usará el módulo AUDIO_MIX (Fase 3). Valores en dB / LUFS.",
+  "master": {"integrated_lufs": -14, "true_peak_dbtp": -1.0, "_note": "-14 LUFS es la referencia de normalización de YouTube/TikTok/IG."},
+  "voice": {
+    "target_lufs": -16,
+    "highpass_hz": 80,
+    "silence_removal": {"threshold_db": -40, "min_silence_ms": 350, "keep_padding_ms": 120},
+    "gap_between_scenes_ms": {"LONG": 150, "SHORT": 60},
+    "emphasis": "Las emphasis_words se marcan en el texto para el TTS (SSML/énfasis si el proveedor lo soporta) y se resaltan en el subtítulo."
+  },
+  "music": {
+    "bed_level_db_below_voice": {"LONG": 22, "SHORT": 18},
+    "ducking": {"amount_db": 8, "attack_ms": 80, "release_ms": 400},
+    "fade_in_s": 1.0, "fade_out_s": 2.0,
+    "max_tracks_per_video": {"LONG": 3, "SHORT": 1},
+    "license_required": ["CC0", "royalty-free with YouTube monetization allowed", "YouTube Audio Library"],
+    "_note": "Cada pista usada se registra en 05_audio/LICENSES.txt con origen y licencia. Nunca música con Content ID."
+  },
+  "sfx": {
+    "level_db_below_voice": 10,
+    "min_seconds_between": {"LONG": 6, "SHORT": 2.5},
+    "allowed": ["whoosh", "pop", "coin", "cash_register", "ding", "riser", "impact", "click"],
+    "_note": "Los SFX marcan revelaciones y cambios de idea; nunca decorativos ni encima de una palabra clave."
+  },
+  "subtitles": {
+    "LONG": {"max_chars_per_line": 42, "max_lines": 2, "position": "bottom", "style": "white text, thin black outline, no box"},
+    "SHORT": {"max_words_on_screen": 3, "position": "center_lower_third", "style": "bold white, keyword highlighted in the brand narrator color, word-by-word"},
+    "_note": "Subtítulos legibles pero discretos: nunca tapan la cara del personaje ni el objeto clave."
+  }
+}
