@@ -1,0 +1,186 @@
+{
+  "brand": "FACT_STICK",
+  "format": "PILOT",
+  "topic": "Prueba piloto: los bancos prestan tus depósitos",
+  "title": "Where Your Bank Deposit Really Goes",
+  "format_rationale": "Prueba piloto de herramientas.",
+  "idea": {
+    "angle": "El dinero depositado se presta",
+    "promise": "Saber dónde está tu dinero",
+    "curiosity_gap": "¿Dónde están mis ahorros?",
+    "target_viewer": "Adulto con cuenta bancaria",
+    "rpm_reason": "Banca y finanzas personales"
+  },
+  "structure": [
+    {
+      "section_id": "HOOK",
+      "type": "hook",
+      "purpose": "Choque",
+      "start_s": 0,
+      "end_s": 6
+    },
+    {
+      "section_id": "CH1",
+      "type": "chapter",
+      "purpose": "Mecanismo",
+      "start_s": 6,
+      "end_s": 18
+    },
+    {
+      "section_id": "CH2",
+      "type": "chapter",
+      "purpose": "Multiplicación",
+      "start_s": 18,
+      "end_s": 24
+    },
+    {
+      "section_id": "PAYOFF",
+      "type": "payoff",
+      "purpose": "Riesgo y cierre",
+      "start_s": 24,
+      "end_s": 30
+    }
+  ],
+  "script": {
+    "full_text": "Your bank barely has the money you deposited. Here is why. Wait, so where are my savings right now? The bank keeps a small slice and lends the rest out. That loan gets deposited and lent again. One dollar becomes many. It works, as long as everyone doesn't want their money back at once."
+  },
+  "scenes": [
+    {
+      "number": 1,
+      "section_id": "HOOK",
+      "duration_s": 6,
+      "narration": "Your bank barely has the money you deposited. Here is why.",
+      "speaker": "BLUE",
+      "visual_idea": "BLUE stands next to an open, almost empty glowing bank vault",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Surprised",
+          "pose": "Pointing",
+          "action": "pointing into the empty vault",
+          "position": "left"
+        }
+      ],
+      "setting": "an open bank vault door",
+      "key_objects": [
+        "empty bank vault"
+      ],
+      "camera": "medium",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "sfx": "none"
+    },
+    {
+      "number": 2,
+      "section_id": "CH1",
+      "duration_s": 6,
+      "narration": "Wait, so where are my savings right now?",
+      "speaker": "FARMER",
+      "visual_idea": "FARMER holds an empty wallet upside down",
+      "characters": [
+        {
+          "id": "FARMER",
+          "expression": "Concerned",
+          "pose": "Questioning",
+          "action": "holding an empty wallet upside down",
+          "position": "center"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "empty wallet"
+      ],
+      "camera": "close-up",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "sfx": "none"
+    },
+    {
+      "number": 3,
+      "section_id": "CH1",
+      "duration_s": 6,
+      "narration": "The bank keeps a small slice and lends the rest out.",
+      "speaker": "BLUE",
+      "visual_idea": "a stream of glowing coins flows from a vault toward RICH",
+      "characters": [
+        {
+          "id": "BLUE",
+          "expression": "Talking",
+          "pose": "Explaining",
+          "action": "gesturing at the coin stream",
+          "position": "left"
+        },
+        {
+          "id": "RICH",
+          "expression": "Smug",
+          "pose": "Thumbs up",
+          "action": "catching the coins",
+          "position": "right"
+        }
+      ],
+      "setting": "a vault on the left",
+      "key_objects": [
+        "bank vault",
+        "coin stream"
+      ],
+      "camera": "wide",
+      "motion": "pan_right",
+      "transition_in": "cut",
+      "sfx": "none"
+    },
+    {
+      "number": 4,
+      "section_id": "CH2",
+      "duration_s": 6,
+      "narration": "That loan gets deposited and lent again. One dollar becomes many.",
+      "speaker": "PINK",
+      "visual_idea": "PINK watches one coin multiply into a glowing fan of coins",
+      "characters": [
+        {
+          "id": "PINK",
+          "expression": "Excited",
+          "pose": "Presenting",
+          "action": "presenting the multiplying coins",
+          "position": "center"
+        }
+      ],
+      "setting": "empty dark space",
+      "key_objects": [
+        "multiplying coins"
+      ],
+      "camera": "medium",
+      "motion": "slow_zoom_out",
+      "transition_in": "cut",
+      "sfx": "none"
+    },
+    {
+      "number": 5,
+      "section_id": "PAYOFF",
+      "duration_s": 6,
+      "narration": "It works, as long as everyone doesn't want their money back at once.",
+      "speaker": "GREEN",
+      "visual_idea": "GREEN stands calmly beside a bank protected by a glowing shield",
+      "characters": [
+        {
+          "id": "GREEN",
+          "expression": "Serious",
+          "pose": "Explaining",
+          "action": "pointing at the shield",
+          "position": "left"
+        }
+      ],
+      "setting": "a small bank under a shield",
+      "key_objects": [
+        "small bank",
+        "shield"
+      ],
+      "camera": "wide",
+      "motion": "slow_zoom_in",
+      "transition_in": "cut",
+      "sfx": "none"
+    }
+  ],
+  "audio": {
+    "music_mood": "none"
+  }
+}

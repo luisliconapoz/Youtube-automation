@@ -10,7 +10,8 @@
   },
   "budget_usd_per_video": {
     "LONG": 3.0,
-    "SHORT": 0.75
+    "SHORT": 0.75,
+    "PILOT": 1.0
   },
   "budget_usd_per_day": 25.0,
   "providers": {

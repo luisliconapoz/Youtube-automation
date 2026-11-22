@@ -45,7 +45,15 @@ SHORT = FormatSpec(
     rehook_every_seconds=12,
 )
 
-FORMATS = {"LONG": LONG, "SHORT": SHORT}
+# Piloto: 16:9 corto para probar herramientas sin gastar mucho.
+PILOT = FormatSpec(
+    name="PILOT", aspect="16:9", width=1920, height=1080,
+    min_seconds=15, max_seconds=40, target_min_seconds=20, target_max_seconds=35,
+    words_per_minute=155, scene_min_seconds=3.0, scene_max_seconds=8.0,
+    hook_max_seconds=7.0, rehook_every_seconds=15,
+)
+
+FORMATS = {"LONG": LONG, "SHORT": SHORT, "PILOT": PILOT}
 
 
 def get_format(name: str) -> FormatSpec:
