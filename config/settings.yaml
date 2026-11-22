@@ -9,15 +9,13 @@ idioma: es
 # ---------- Fase 1: Dirección y guion ----------
 guion:
   # Orden de proveedores. Se usa el primero que funcione.
-  #  - manual:   usa proyectos/<x>/guion.yaml si existe (escrito a mano)
-  #  - ollama:   LLM local open-source (https://ollama.com) — costo cero
-  #  - plantilla: fallback offline, divide la idea en escenas sin IA
-  proveedores: [manual, ollama, plantilla]
-  ollama:
-    url: http://localhost:11434
-    modelo: llama3.1:8b
-    temperatura: 0.8
-    timeout: 600
+  #  - manual:    usa proyectos/<x>/guion.yaml si existe (escrito a mano)
+  #  - claude:    API de Anthropic (requiere el secreto ANTHROPIC_API_KEY)
+  #  - plantilla: respaldo sin IA, cada párrafo de idea.md es una escena
+  proveedores: [manual, claude, plantilla]
+  claude:
+    modelo: claude-opus-5-5
+    esfuerzo: medium          # low | medium | high (más alto = más elaborado y más caro)
 
 # ---------- Fase 2: Audio (edge-tts) ----------
 audio:
@@ -30,19 +28,21 @@ audio:
 
 # ---------- Fase 3: Imágenes ----------
 imagenes:
-  # Cadena de respaldo:
-  #  - pollinations: API gratuita sin clave (Flux), semilla fija = consistencia
-  #  - diffusers:    Stable Diffusion local (requiere instalar extras opcionales)
+  # Cadena de respaldo (todas gratuitas):
+  #  - pollinations: Pollinations.ai (Flux). Sin clave: ~1 imagen cada 16 s.
+  #                  Con el secreto POLLINATIONS_API_KEY (registro gratis) va más rápido.
+  #  - huggingface:  Inference API gratuita de Hugging Face, requiere el secreto HF_TOKEN
   #  - referencias:  usa directamente las imágenes de referencia del usuario
   #  - placeholder:  fondo generado con la paleta del proyecto (siempre funciona)
-  proveedores: [pollinations, referencias, placeholder]
+  proveedores: [pollinations, huggingface, referencias, placeholder]
   pollinations:
     modelo: flux
     timeout: 120
     reintentos: 3
-  diffusers:
-    modelo: stabilityai/sdxl-turbo
-    pasos: 4
+    espera_anonimo: 16        # segundos entre peticiones sin clave
+  huggingface:
+    modelo: black-forest-labs/FLUX.1-schnell
+    timeout: 120
   negativo: "texto, marca de agua, logo, deformado, borroso, baja calidad"
 
 # ---------- Fase 4: Ensamblaje y subtítulos ----------
@@ -78,8 +78,13 @@ formatos:
 
 # ---------- Fase 5: Almacenamiento ----------
 salida:
-  # Carpeta sincronizada con OneDrive. Admite variables de entorno.
-  # Si no existe, se usa ./salida. También: variable PILO_OUTPUT_DIR.
-  carpeta: "${OneDrive}/PiloStudio/Videos"
+  # Copia local (relativa al repo). En Codespaces se descarga desde el explorador.
+  # También se puede cambiar con la variable PILO_OUTPUT_DIR.
+  carpeta: salida
   guardar_guion: true
   guardar_srt: true
+  nube:
+    activada: true
+    # remoto:ruta de rclone. El remoto "onedrive" se crea con scripts/conectar_onedrive.sh
+    # (cambia a "gdrive:..." o "dropbox:..." si prefieres otro servicio).
+    destino: "onedrive:PiloStudio/Videos"

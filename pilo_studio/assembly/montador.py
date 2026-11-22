@@ -87,7 +87,7 @@ def montar(guion: Guion, build: Path, cfg: dict) -> Path:
                 "-map", "0:v", "-map", "[a]"]
     if scfg.get("activados", True):
         cmd += ["-vf", "ass=subtitulos.ass"]  # ruta relativa: evita problemas de escape en Windows
-    cmd += ["-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+    cmd += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", final.name]
     ejecutar(cmd, cwd=build)
     log.info("Video ensamblado: %s", final)

@@ -61,11 +61,10 @@ def expandir_ruta(texto: str) -> Path | None:
 
 
 def carpeta_salida(cfg: dict) -> Path:
-    """Resuelve la carpeta final (OneDrive) con respaldos sensatos."""
+    """Carpeta local de salida (dentro del repo/Codespace salvo que se indique otra)."""
     env = os.environ.get("PILO_OUTPUT_DIR")
     if env:
         return Path(env)
-    destino = expandir_ruta(cfg.get("salida", {}).get("carpeta", "") or "")
-    if destino is not None and str(destino) and destino.parent.exists():
-        return destino
-    return RAIZ / "salida"
+    texto = cfg.get("salida", {}).get("carpeta", "salida") or "salida"
+    destino = expandir_ruta(texto) or Path("salida")
+    return destino if destino.is_absolute() else RAIZ / destino

@@ -77,6 +77,7 @@ def test_pipeline_completo_offline(proyecto, tmp_path, monkeypatch):
     monkeypatch.setenv("PILO_OUTPUT_DIR", str(tmp_path / "onedrive"))
     cfg = cargar_config(proyecto)
     cfg["guion"]["proveedores"] = ["plantilla"]
+    cfg["salida"]["nube"]["activada"] = False
     cfg["imagenes"]["proveedores"] = ["placeholder"]
     cfg["formatos"]["short"].update(ancho=270, alto=480, tam_fuente=30, margen_v=120)
     cfg["video"]["fps"] = 12
@@ -84,3 +85,57 @@ def test_pipeline_completo_offline(proyecto, tmp_path, monkeypatch):
     assert final.exists() and final.stat().st_size > 1000
     assert final.parent.parent == tmp_path / "onedrive"
     assert (final.parent / "publicacion.txt").exists()
+
+
+def test_claude_sin_clave_devuelve_none(proyecto, monkeypatch):
+    from pilo_studio.director.guionista import guion_claude
+
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    p = Proyecto.cargar(proyecto)
+    assert guion_claude(p, "short", cargar_config(p.ruta), BibliaEstilo(p)) is None
+
+
+def test_claude_convierte_salida_estructurada(proyecto, monkeypatch):
+    from types import SimpleNamespace
+
+    from pilo_studio.director import guionista
+
+    salida = guionista.GuionIA(titulo="T", descripcion="D", etiquetas=["a"], escenas=[
+        guionista.EscenaIA(narracion="Hola", prompt_visual="robot", personajes=["Pilo"], escenario="nave")])
+    capturado = {}
+
+    class Falso:
+        def __init__(self):
+            self.beta = SimpleNamespace(messages=SimpleNamespace(parse=self.parse))
+
+        def parse(self, **kw):
+            capturado.update(kw)
+            return SimpleNamespace(stop_reason="end_turn", parsed_output=salida,
+                                   usage=SimpleNamespace(input_tokens=1, output_tokens=1))
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    monkeypatch.setattr(guionista.anthropic, "Anthropic", Falso)
+    p = Proyecto.cargar(proyecto)
+    g = guionista.guion_claude(p, "short", cargar_config(p.ruta), BibliaEstilo(p))
+    assert g.titulo == "T" and g.escenas[0].personajes == ["Pilo"] and g.escenas[0].id == 1
+    assert capturado["output_format"] is guionista.GuionIA
+    assert "orange robot" in capturado["messages"][0]["content"]
+
+
+def test_subida_nube_se_omite_sin_config(tmp_path, monkeypatch):
+    from pilo_studio.storage import nube
+
+    monkeypatch.delenv("RCLONE_CONF_B64", raising=False)
+    monkeypatch.setattr(nube, "RCLONE_CONF", tmp_path / "no-existe.conf")
+    assert nube.subir(tmp_path, "onedrive:PiloStudio") is False
+
+
+def test_programa_maestro_crea_proyecto_con_universo(tmp_path, monkeypatch):
+    import pilo
+
+    monkeypatch.setattr(pilo, "RAIZ", tmp_path)
+    (tmp_path / "proyectos").mkdir()
+    destino = pilo.crear_proyecto("Los agujeros negros explicados", None, EJEMPLO)
+    assert (destino / "idea.md").read_text(encoding="utf-8").startswith("# Los agujeros negros explicados")
+    assert "Pilo" in Proyecto.cargar(destino).estilo.personajes

@@ -1,8 +1,9 @@
 """FASE 3 — Generación de imágenes con consistencia visual.
 
-Cadena de respaldo configurable (todas gratuitas):
-  pollinations -> API pública sin clave (modelo Flux), semilla fija por proyecto
-  diffusers    -> Stable Diffusion local (opcional, requiere torch)
+Cadena de respaldo configurable (todas gratuitas, todas en la nube):
+  pollinations -> Pollinations.ai (Flux). Sin clave funciona con límite de velocidad;
+                  con POLLINATIONS_API_KEY (registro gratuito) va más rápido.
+  huggingface  -> Inference API gratuita de Hugging Face (FLUX.1-schnell), requiere HF_TOKEN
   referencias  -> reutiliza las imágenes de referencia del usuario
   placeholder  -> degradado con la paleta del proyecto + texto (siempre funciona)
 """
@@ -10,6 +11,7 @@ Cadena de respaldo configurable (todas gratuitas):
 from __future__ import annotations
 
 import io
+import os
 import time
 import urllib.parse
 from pathlib import Path
@@ -28,45 +30,55 @@ def _ajustar(img: Image.Image, ancho: int, alto: int) -> Image.Image:
 
 
 # ------------------------------------------------------------ pollinations
+_ULTIMA_POLLINATIONS = 0.0
+
+
 def pollinations(prompt: str, ancho: int, alto: int, semilla: int, cfg: dict) -> Image.Image | None:
+    global _ULTIMA_POLLINATIONS
     pc = cfg["imagenes"]["pollinations"]
+    clave = os.environ.get("POLLINATIONS_API_KEY")
     url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt[:1500])
     params = {"width": ancho, "height": alto, "seed": semilla, "model": pc.get("modelo", "flux"),
               "nologo": "true", "enhance": "false", "negative": cfg["imagenes"].get("negativo", "")}
+    cabeceras = {"Authorization": f"Bearer {clave}"} if clave else {}
+    # Sin clave el nivel anónimo admite ~1 petición cada 15 s: respetarlo evita bloqueos
+    espera = 0 if clave else float(pc.get("espera_anonimo", 16))
     for intento in range(1, pc.get("reintentos", 3) + 1):
+        pausa = _ULTIMA_POLLINATIONS + espera - time.time()
+        if pausa > 0:
+            time.sleep(pausa)
         try:
-            r = requests.get(url, params=params, timeout=pc.get("timeout", 120))
+            r = requests.get(url, params=params, headers=cabeceras, timeout=pc.get("timeout", 120))
+            _ULTIMA_POLLINATIONS = time.time()
             if r.ok and r.headers.get("content-type", "").startswith("image"):
                 return Image.open(io.BytesIO(r.content))
             log.warning("Pollinations HTTP %s (intento %d)", r.status_code, intento)
         except requests.RequestException as e:
+            _ULTIMA_POLLINATIONS = time.time()
             log.warning("Pollinations no disponible (intento %d): %s", intento, type(e).__name__)
         time.sleep(3 * intento)
     return None
 
 
-# ------------------------------------------------------------ diffusers (local)
-_PIPE = None
-
-
-def diffusers_local(prompt: str, ancho: int, alto: int, semilla: int, cfg: dict) -> Image.Image | None:
-    global _PIPE
-    try:
-        import torch
-        from diffusers import AutoPipelineForText2Image
-    except ImportError:
-        log.info("diffusers no instalado; se omite (ver requirements.txt, sección opcional).")
+# ------------------------------------------------------------ huggingface
+def huggingface(prompt: str, ancho: int, alto: int, semilla: int, cfg: dict) -> Image.Image | None:
+    token = os.environ.get("HF_TOKEN")
+    if not token:
         return None
-    dc = cfg["imagenes"]["diffusers"]
-    if _PIPE is None:
-        disp = "cuda" if torch.cuda.is_available() else "cpu"
-        tipo = torch.float16 if disp == "cuda" else torch.float32
-        _PIPE = AutoPipelineForText2Image.from_pretrained(dc["modelo"], torch_dtype=tipo).to(disp)
-    gen = __import__("torch").Generator(device=_PIPE.device).manual_seed(semilla)
-    # Generamos a resolución nativa del modelo y luego reescalamos
+    hc = cfg["imagenes"]["huggingface"]
+    url = f"https://router.huggingface.co/hf-inference/models/{hc.get('modelo', 'black-forest-labs/FLUX.1-schnell')}"
+    # FLUX trabaja mejor en múltiplos de 64 y ~1 MP; luego se reescala al cuadro final
     w, h = (1024, 576) if ancho > alto else (576, 1024)
-    return _PIPE(prompt=prompt, negative_prompt=cfg["imagenes"].get("negativo"), width=w, height=h,
-                 num_inference_steps=dc.get("pasos", 4), guidance_scale=0.0, generator=gen).images[0]
+    try:
+        r = requests.post(url, headers={"Authorization": f"Bearer {token}"}, timeout=hc.get("timeout", 120),
+                          json={"inputs": prompt, "parameters": {"width": w, "height": h, "seed": semilla}})
+    except requests.RequestException as e:
+        log.warning("Hugging Face no disponible: %s", type(e).__name__)
+        return None
+    if r.ok and r.headers.get("content-type", "").startswith("image"):
+        return Image.open(io.BytesIO(r.content))
+    log.warning("Hugging Face HTTP %s: %s", r.status_code, r.text[:200])
+    return None
 
 
 # ------------------------------------------------------------ referencias
@@ -123,8 +135,8 @@ def generar_imagenes(guion: Guion, build: Path, cfg: dict, biblia: BibliaEstilo)
         for prov in cfg["imagenes"]["proveedores"]:
             if prov == "pollinations":
                 img = pollinations(prompt, ancho, alto, biblia.semilla, cfg)
-            elif prov == "diffusers":
-                img = diffusers_local(prompt, ancho, alto, biblia.semilla, cfg)
+            elif prov == "huggingface":
+                img = huggingface(prompt, ancho, alto, biblia.semilla, cfg)
             elif prov == "referencias":
                 img = desde_referencias(biblia, e)
             elif prov == "placeholder":

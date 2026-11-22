@@ -1,8 +1,13 @@
-"""FASE 5 — Almacenamiento en la carpeta sincronizada con OneDrive."""
+"""FASE 5 — Almacenamiento.
+
+1. Copia local en `salida/` (dentro del Codespace: descargable desde el explorador).
+2. Subida automática a la nube (OneDrive por defecto) con rclone, si está configurado.
+"""
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from dataclasses import asdict
 from datetime import date
@@ -10,6 +15,7 @@ from pathlib import Path
 
 from pilo_studio.config import carpeta_salida
 from pilo_studio.models import Guion
+from pilo_studio.storage.nube import subir
 from pilo_studio.utils import log, slug
 
 
@@ -32,4 +38,7 @@ def exportar(video: Path, guion: Guion, build: Path, cfg: dict) -> Path:
         f"TÍTULO:\n{guion.titulo}\n\nDESCRIPCIÓN:\n{guion.descripcion}\n\n{hashtags}\n\n"
         f"ETIQUETAS:\n{', '.join(guion.etiquetas)}\n", encoding="utf-8")
     log.info("✅ Exportado a %s", final)
+    nube = scfg.get("nube", {}) or {}
+    if nube.get("activada", True):
+        subir(destino, os.environ.get("PILO_DESTINO_NUBE") or nube.get("destino", ""))
     return final

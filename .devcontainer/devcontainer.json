@@ -1,0 +1,31 @@
+{
+  "name": "Pilo Studio",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postAttachCommand": "python pilo.py --diagnostico",
+  "secrets": {
+    "ANTHROPIC_API_KEY": {
+      "description": "Clave de la API de Claude para escribir los guiones (console.anthropic.com)."
+    },
+    "POLLINATIONS_API_KEY": {
+      "description": "Opcional. Clave gratuita de Pollinations (enter.pollinations.ai) para generar imágenes más rápido."
+    },
+    "HF_TOKEN": {
+      "description": "Opcional. Token gratuito de Hugging Face (respaldo de imágenes)."
+    },
+    "RCLONE_CONF_B64": {
+      "description": "Opcional. Configuración de rclone en base64 (la genera scripts/conectar_onedrive.sh) para subir a OneDrive."
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"],
+      "settings": {
+        "files.exclude": { "**/__pycache__": true, "**/.pytest_cache": true }
+      }
+    },
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}

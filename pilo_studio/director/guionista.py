@@ -3,19 +3,20 @@
 Convierte la idea del usuario en un `Guion` estructurado por escenas, con
 narración exacta y prompts visuales coherentes con la biblia de estilo.
 
-Proveedores (costo cero), en el orden definido en settings.yaml:
+Proveedores, en el orden definido en settings.yaml:
   * manual    -> proyectos/<x>/guion.yaml escrito por el usuario
-  * ollama    -> LLM local open-source (llama3.1, qwen2.5, mistral…)
+  * claude    -> API de Anthropic (salida estructurada validada con Pydantic)
   * plantilla -> fallback determinista sin IA (siempre funciona)
 """
 
 from __future__ import annotations
 
-import json
+import os
 import re
 
-import requests
+import anthropic
 import yaml
+from pydantic import BaseModel
 
 from pilo_studio.models import Guion
 from pilo_studio.proyecto import Proyecto
@@ -43,80 +44,93 @@ def guion_manual(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaEsti
     return Guion.desde_dict(datos)
 
 
-# ---------------------------------------------------------------- ollama
+# ---------------------------------------------------------------- claude
+class EscenaIA(BaseModel):
+    narracion: str
+    prompt_visual: str
+    personajes: list[str]
+    escenario: str | None
+
+
+class GuionIA(BaseModel):
+    titulo: str
+    descripcion: str
+    etiquetas: list[str]
+    escenas: list[EscenaIA]
+
+
 PROMPT_SISTEMA = """Eres el director creativo y guionista de "Pilo Studio", un canal de YouTube.
-Escribes guiones de narración en off, claros, emocionantes y con un gancho fuerte en los primeros 5 segundos.
-Respondes ÚNICAMENTE con JSON válido, sin comentarios ni markdown."""
+Escribes guiones de narración en off claros y emocionantes, con un gancho fuerte en los primeros 5 segundos.
+Cada escena corresponde a una sola imagen fija que acompaña a la narración."""
 
-PROMPT_USUARIO = """IDEA CENTRAL:
+PROMPT_USUARIO = """<idea>
 {idea}
+</idea>
 
-UNIVERSO VISUAL (respétalo en cada prompt visual):
+<universo_visual>
 {estilo}
+</universo_visual>
 
-FORMATO: {formato_desc}
-- Longitud total de la narración: ~{palabras} palabras (idioma: {idioma}).
-- Divide en {escenas_min}-{escenas_max} escenas. Cada escena = una sola imagen.
-- "narracion": texto EXACTO que leerá la voz. Sin acotaciones, sin emojis, sin "[música]".
-- "prompt_visual": descripción en INGLÉS de la imagen (sujeto, acción, encuadre, iluminación).
-  Usa los nombres de personajes/escenarios definidos para mantener consistencia.
-- "personajes": lista de nombres de personajes que aparecen. "escenario": nombre del escenario o null.
-- Termina con una llamada a la acción breve (suscribirse / seguir).
-
-Devuelve exactamente este esquema:
-{{"titulo": str, "descripcion": str, "etiquetas": [str],
-  "escenas": [{{"narracion": str, "prompt_visual": str, "personajes": [str], "escenario": str|null}}]}}"""
-
-
-def _extraer_json(texto: str) -> dict:
-    texto = texto.strip()
-    try:
-        return json.loads(texto)
-    except json.JSONDecodeError:
-        m = re.search(r"\{.*\}", texto, re.S)
-        if not m:
-            raise
-        return json.loads(m.group(0))
+Formato: {formato_desc}
+- Longitud total de la narración: unas {palabras} palabras, en idioma "{idioma}".
+- Entre {escenas_min} y {escenas_max} escenas.
+- "narracion": el texto EXACTO que leerá la voz sintética: sin acotaciones, emojis ni indicaciones como [música].
+- "prompt_visual": descripción en INGLÉS de la imagen (sujeto, acción, encuadre, iluminación). Usa los
+  nombres de personajes y escenarios del universo visual para que el estilo sea consistente.
+- "personajes": nombres de los personajes del universo visual que aparecen en la escena (lista vacía si ninguno).
+- "escenario": nombre de un escenario del universo visual, o null.
+- "descripcion" y "etiquetas": listas para publicar en YouTube (descripción de 2-3 frases, 8-15 etiquetas).
+- La última escena cierra con una llamada a la acción breve (suscribirse / seguir)."""
 
 
-def guion_ollama(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaEstilo) -> Guion | None:
-    oc = cfg["guion"]["ollama"]
-    palabras = objetivo_palabras(cfg, formato)
+def guion_claude(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaEstilo) -> Guion | None:
+    if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
+        log.warning("Falta ANTHROPIC_API_KEY (secreto de Codespaces/Actions); se omite Claude.")
+        return None
+    cc = cfg["guion"]["claude"]
     es_short = formato == "short"
     prompt = PROMPT_USUARIO.format(
         idea=proyecto.idea,
         estilo=biblia.resumen_para_guionista(),
-        formato_desc="YouTube Short / Reel vertical (<60 s), ritmo rápido" if es_short
-        else "Video largo de YouTube (7-10 min), narrativa con introducción, desarrollo y cierre",
-        palabras=palabras,
+        formato_desc="YouTube Short / Reel vertical de menos de 60 segundos, ritmo rápido" if es_short
+        else "Video largo de YouTube (7-10 min) con introducción, desarrollo y cierre",
+        palabras=objetivo_palabras(cfg, formato),
         idioma=cfg.get("idioma", "es"),
-        escenas_min=5 if es_short else 14,
-        escenas_max=8 if es_short else 24,
+        escenas_min=4 if es_short else 14,
+        escenas_max=7 if es_short else 24,
     )
+    cliente = anthropic.Anthropic()
     try:
-        r = requests.post(
-            f"{oc['url'].rstrip('/')}/api/generate",
-            json={
-                "model": oc["modelo"],
-                "system": PROMPT_SISTEMA,
-                "prompt": prompt,
-                "format": "json",
-                "stream": False,
-                "options": {"temperature": oc.get("temperatura", 0.8), "num_ctx": 8192},
-            },
-            timeout=oc.get("timeout", 600),
+        r = cliente.beta.messages.parse(
+            model=cc.get("modelo", "claude-opus-5-5"),
+            max_tokens=16000,
+            output_config={"effort": cc.get("esfuerzo", "medium")},
+            # Si el modelo declina la petición, la API la reintenta en otro modelo automáticamente
+            betas=["server-side-fallback-2026-07-01"],
+            fallbacks="default",
+            system=PROMPT_SISTEMA,
+            messages=[{"role": "user", "content": prompt}],
+            output_format=GuionIA,
         )
-        r.raise_for_status()
-    except requests.RequestException as e:
-        log.warning("Ollama no disponible (%s). Instálalo gratis en https://ollama.com", e)
+    except anthropic.AuthenticationError:
+        log.error("ANTHROPIC_API_KEY inválida.")
         return None
-    datos = _extraer_json(r.json()["response"])
+    except anthropic.RateLimitError:
+        log.warning("Límite de uso de la API de Claude alcanzado; prueba más tarde.")
+        return None
+    except anthropic.APIStatusError as e:
+        log.warning("Error de la API de Claude (%s): %s", e.status_code, e.message)
+        return None
+    except anthropic.APIConnectionError:
+        log.warning("Sin conexión con la API de Claude.")
+        return None
+    if r.stop_reason == "refusal" or r.parsed_output is None:
+        log.warning("Claude no devolvió un guion (stop_reason=%s).", r.stop_reason)
+        return None
+    datos = r.parsed_output.model_dump()
     datos["formato"] = formato
-    guion = Guion.desde_dict(datos)
-    if not guion.escenas:
-        log.warning("Ollama devolvió un guion vacío.")
-        return None
-    return guion
+    log.info("Claude: %d tokens de entrada, %d de salida", r.usage.input_tokens, r.usage.output_tokens)
+    return Guion.desde_dict(datos)
 
 
 # ---------------------------------------------------------------- plantilla
@@ -128,7 +142,7 @@ def guion_plantilla(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaE
     """Sin IA: cada párrafo (o grupo de oraciones) de idea.md se vuelve una escena.
 
     Útil para escribir tú la narración en idea.md y dejar que el sistema
-    haga todo lo demás, o como red de seguridad si no hay LLM.
+    haga todo lo demás, o como red de seguridad si Claude no está disponible.
     """
     lineas = proyecto.idea.splitlines()
     titulo = proyecto.nombre
@@ -168,7 +182,7 @@ def guion_plantilla(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaE
     return Guion.desde_dict({"titulo": titulo, "formato": formato, "descripcion": cuerpo[:300], "escenas": escenas})
 
 
-PROVEEDORES = {"manual": guion_manual, "ollama": guion_ollama, "plantilla": guion_plantilla}
+PROVEEDORES = {"manual": guion_manual, "claude": guion_claude, "plantilla": guion_plantilla}
 
 
 def escribir_guion(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaEstilo) -> Guion:

@@ -1,105 +1,187 @@
 # 🎬 Pilo Studio
 
-Fábrica digital **100 % automatizada** de videos — largos (7–10 min, 16:9) y Shorts/Reels (9:16) —
-con **presupuesto cero**: solo herramientas open-source y servicios gratuitos.
-
-**Tú aportas:** la idea (`idea.md`) y las referencias visuales (`referencias/` + `proyecto.yaml`).
-**Pilo Studio hace el resto:** guion → voz → imágenes → montaje con subtítulos → OneDrive.
+Fábrica de videos **100 % en la nube**: largos (7–10 min, 16:9) y Shorts/Reels (9:16).
+Funciona desde un **iPad** con GitHub Codespaces o GitHub Actions. No hay que instalar nada.
 
 ```
-idea.md + referencias/
-        │
- [1] DIRECCIÓN Y GUION   Ollama (LLM local) · guion manual · plantilla offline
-        │                  → escenas con narración exacta + prompt visual
- [2] AUDIO               edge-tts (voces neurales gratis) + marcas por palabra
-        │
- [3] IMÁGENES            Pollinations (Flux, sin clave) · SD local · referencias · placeholder
-        │                  + Biblia de estilo: prefijo, personajes, paleta, semilla fija
- [4] ENSAMBLAJE          MoviePy (Ken Burns + sincronía) · FFmpeg/libass (subtítulos + música)
-        │
- [5] ALMACENAMIENTO      ${OneDrive}/PiloStudio/Videos/<fecha>_<titulo>_<formato>/
+ tu idea ─► [1] Claude escribe el guion por escenas
+          ─► [2] edge-tts pone la voz (gratis)
+          ─► [3] Pollinations.ai / Hugging Face generan las imágenes (gratis)
+          ─► [4] MoviePy + FFmpeg montan el video y queman los subtítulos
+          ─► [5] salida/  +  OneDrive (subida automática con rclone)
 ```
 
-## Estructura
+Cada video produce `video.mp4`, `subtitulos.srt`, `publicacion.txt` (título, descripción y hashtags) y `guion.json`.
 
-```
-pilo_studio/
-├── cli.py                 # python -m pilo_studio …
-├── pipeline.py            # orquestador de las 5 fases (con caché reanudable)
-├── config.py              # settings.yaml global + overrides por proyecto
-├── models.py              # Guion / Escena / Palabra
-├── proyecto.py            # carga idea, estilo y referencias
-├── director/guionista.py  # FASE 1
-├── audio/locutor.py       # FASE 2
-├── visuals/estilo.py      # biblia de estilo (consistencia)
-├── visuals/generador.py   # FASE 3
-├── assembly/subtitulos.py # SRT + ASS a partir de marcas de edge-tts
-├── assembly/montador.py   # FASE 4
-└── storage/exportador.py  # FASE 5
-config/settings.yaml       # toda la configuración
-proyectos/_plantilla/      # plantilla para nuevos proyectos
-proyectos/ejemplo-pilo-espacio/
-assets/music/              # música libre de derechos (opcional)
-tests/                     # pruebas offline (TTS simulado)
-```
+---
 
-## Instalación
+## 1. Preparación (una sola vez, desde Safari en el iPad)
 
-Necesitas Python 3.10 o superior y [FFmpeg](https://ffmpeg.org) en el PATH
-(Windows: `winget install ffmpeg`).
+### 1.1 Secretos
+Los secretos son claves privadas que Codespaces y Actions inyectan como variables. Nunca se guardan en el código.
+
+| Secreto | ¿Obligatorio? | Dónde se consigue | Para qué |
+|---|---|---|---|
+| `ANTHROPIC_API_KEY` | Recomendado | [console.anthropic.com](https://console.anthropic.com) → API Keys | Claude escribe el guion. Sin ella, cada párrafo de tu idea se convierte en una escena. |
+| `POLLINATIONS_API_KEY` | Opcional | [enter.pollinations.ai](https://enter.pollinations.ai) (registro gratuito) | Imágenes más rápidas. Sin ella, el modo anónimo genera ~1 imagen cada 16 s. |
+| `HF_TOKEN` | Opcional | [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (gratis, permiso *Read*) | Respaldo de imágenes si Pollinations falla. |
+| `RCLONE_CONF_B64` | Opcional | Lo genera `scripts/conectar_onedrive.sh` (paso 3) | Subida automática a OneDrive. |
+
+> 💲 La API de Claude es de pago por uso. Un guion cuesta céntimos, pero no es gratis. Todo lo demás (voz, imágenes, montaje y almacenamiento) cuesta cero.
+
+**Para Codespaces:** github.com → foto de perfil → **Settings → Codespaces → Secrets → New secret**.
+En *Repository access* elige este repositorio.
+
+**Para Actions:** en el repositorio → **Settings → Secrets and variables → Actions → New repository secret**.
+Son independientes de los de Codespaces: crea los mismos nombres en los dos sitios si vas a usar ambos.
+
+### 1.2 Crear el Codespace
+1. Abre el repositorio en Safari → botón verde **Code** → pestaña **Codespaces** → **Create codespace on `<rama>`**.
+2. Espera 2–4 minutos: se instalan solos Python, FFmpeg, rclone y las dependencias (`.devcontainer/`).
+3. En la terminal (abajo) aparecerá el **diagnóstico**, que muestra qué está listo.
+
+> 💡 Consejo para iPad: en Safari, *Compartir → Añadir a pantalla de inicio* abre el Codespace a pantalla completa.
+> Un teclado externo ayuda mucho en la terminal.
+
+---
+
+## 2. Producir videos
+
+### Opción A: Codespace (interactivo)
+En la terminal:
 
 ```bash
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+python pilo.py
 ```
 
-**Guiones con IA (recomendado, gratis y local):** instala [Ollama](https://ollama.com) y ejecuta
-`ollama pull llama3.1:8b`. Sin Ollama, el sistema usa el modo *plantilla*: cada párrafo de `idea.md`
-se convierte en una escena.
-
-## Uso
+El modo guiado te pide la idea, el formato y si quieres reutilizar los personajes de un proyecto existente.
+O en una sola línea:
 
 ```bash
-# 1. Crear un proyecto
-python -m pilo_studio nuevo "Misterios del océano" --idea "Las criaturas más extrañas del fondo marino"
-
-# 2. (Opcional) poner imágenes en proyectos/misterios-del-oceano/referencias/
-#    y describir personajes/escenarios en proyecto.yaml
-
-# 3. Producir
-python -m pilo_studio producir proyectos/misterios-del-oceano --formato ambos
-
-# Revisar el guion antes de renderizar:
-python -m pilo_studio producir proyectos/misterios-del-oceano --hasta guion
-#   (edita build/largo/guion.json y vuelve a ejecutar sin --hasta)
-
-# Voces disponibles
-python -m pilo_studio voces --idioma es
+python pilo.py "Por qué los gatos ronronean" --formato ambos
+python pilo.py "Viaje a Marte" --formato short --universo proyectos/ejemplo-pilo-espacio
+python pilo.py --proyecto proyectos/ejemplo-pilo-espacio --formato largo
+python pilo.py --diagnostico
 ```
 
-Puedes probar el ejemplo incluido:
-`python -m pilo_studio producir proyectos/ejemplo-pilo-espacio --formato short`
+Cuando termina, el video está en `salida/<fecha>_<título>_<formato>/` y, si conectaste OneDrive, también en
+`OneDrive/PiloStudio/Videos/`. Para descargarlo al iPad: en el **explorador** (izquierda), clic derecho
+(pulsación larga) sobre el `.mp4` → **Download** → se guarda en la app Archivos.
 
-## Consistencia visual
+### Opción B: GitHub Actions (sin abrir el Codespace)
+Ideal para videos largos o para lanzar varios seguidos desde el móvil:
 
-| Técnica | Dónde |
+1. Repositorio → pestaña **Actions** → **Producir video** → **Run workflow**.
+2. Escribe la idea (o la ruta de un proyecto), elige el formato y pulsa **Run**.
+3. Al terminar (unos 10–30 min para un video largo), el video aparece en OneDrive (si configuraste
+   `RCLONE_CONF_B64`) y siempre como **artefacto** descargable al final de la página de la ejecución (dura 14 días).
+
+> En repositorios públicos los minutos de Actions son gratuitos. En privados, el plan Free incluye 2.000 min/mes.
+
+---
+
+## 3. Conectar OneDrive (una vez)
+
+En la terminal del Codespace:
+
+```bash
+bash scripts/conectar_onedrive.sh
+```
+
+El script te guía paso a paso. Lo único raro en el iPad: tras iniciar sesión en Microsoft, Safari mostrará un
+**error en una página `localhost:53682`**. Copia esa URL completa y ejecútala en una segunda terminal con
+`curl "URL"`. Al final, el script imprime un texto largo. Guárdalo como secreto `RCLONE_CONF_B64`
+(en Codespaces y/o Actions) y no tendrás que repetir el proceso.
+
+¿Prefieres Google Drive o Dropbox? Crea el remoto con el mismo método (`rclone config`) y cambia
+`salida.nube.destino` en `config/settings.yaml` (por ejemplo, `gdrive:PiloStudio/Videos`).
+
+---
+
+## 4. Personajes y estilo visual consistentes
+
+Cada proyecto vive en `proyectos/<nombre>/`:
+
+```
+idea.md         ← la idea (lo único obligatorio)
+proyecto.yaml   ← estilo, personajes y escenarios
+referencias/    ← imágenes de referencia (opcional)
+```
+
+Ejemplo de `proyecto.yaml` (ver `proyectos/ejemplo-pilo-espacio/`):
+
+```yaml
+estilo:
+  descripcion: "3D animated movie style, soft volumetric lighting, vibrant colors"
+  paleta: ["#0b132b", "#5bc0be", "#ffb703"]   # vacío = se extrae de referencias/
+  personajes:
+    Pilo: "a small friendly orange robot with round glowing blue eyes and a single antenna"
+  escenarios:
+    nave: "inside a cozy retro-futuristic spaceship cockpit"
+```
+
+Para mantener la consistencia, Pilo Studio:
+- antepone el mismo estilo a todos los prompts;
+- inyecta la descripción fija de cada personaje cuando aparece;
+- añade la paleta de color;
+- usa la misma semilla en todo el proyecto.
+
+**Subir referencias desde el iPad:** en el Codespace, clic derecho en la carpeta `referencias/` → **Upload…**.
+O en github.com: entra en la carpeta → **Add file → Upload files** (necesario si vas a usar Actions).
+Si una imagen se llama como un personaje (`Pilo.png`), se usa como respaldo para sus escenas.
+
+Para crear un "universo" reutilizable, prepara un proyecto con personajes y referencias. Luego produce
+nuevas ideas con `--universo proyectos/mi-universo`.
+
+---
+
+## 5. Ajustes útiles (`config/settings.yaml`)
+
+| Clave | Qué cambia |
 |---|---|
-| Prefijo de estilo idéntico en todos los prompts | `estilo.descripcion` |
-| Descripción canónica de personaje inyectada cuando aparece | `estilo.personajes` |
-| Escenarios recurrentes | `estilo.escenarios` |
-| Paleta de color (manual o **extraída de tus referencias**) | `estilo.paleta` / `referencias/` |
-| Semilla fija por proyecto | automática |
-| Imagen de referencia por nombre de archivo (`Pilo.png`) | proveedor `referencias` |
+| `audio.voz` | Voz de edge-tts. Lista: `python -m pilo_studio voces --idioma es` |
+| `guion.claude.modelo` / `esfuerzo` | Modelo de Claude y nivel de elaboración |
+| `formatos.largo.duracion_objetivo_min` | Duración objetivo del video largo |
+| `video.musica.archivo` | Música de fondo libre de derechos (p. ej. `assets/music/fondo.mp3`) |
+| `salida.nube.destino` | Remoto y carpeta de rclone |
 
-## Salida (OneDrive)
+Cualquier clave puede sobrescribirse por proyecto en `proyecto.yaml → config:`.
 
-Por defecto: `${OneDrive}/PiloStudio/Videos` (OneDrive define `%OneDrive%` en Windows).
-Para usar otra carpeta, cambia `salida.carpeta` o define `PILO_OUTPUT_DIR`. Si la carpeta no
-existe, se usa `./salida`. Cada video incluye `.mp4`, `.srt`, `guion.json` y `publicacion.txt`
-(título, descripción y hashtags para la subida).
+**Revisar el guion antes de renderizar:** `python pilo.py --proyecto proyectos/x --hasta guion`, edita
+`proyectos/x/build/<formato>/guion.json` y vuelve a ejecutar sin `--hasta`. Cada fase guarda caché, así que
+una ejecución interrumpida continúa donde se quedó.
 
-## Pruebas
+---
 
-```bash
-pip install -r requirements-dev.txt && pytest -q
+## 6. Límites a tener en cuenta
+
+- **Codespaces gratis:** 120 horas-núcleo al mes (60 h con la máquina de 2 núcleos). Un video largo tarda
+  unos 15–30 min en renderizar. El Codespace se suspende tras 30 min sin actividad; súbelo en
+  *Settings → Codespaces → Default idle timeout*, o usa Actions para los videos largos.
+  **Detén el Codespace** cuando termines (github.com/codespaces → ⋯ → Stop).
+- **Pollinations anónimo** es lento (~16 s por imagen: un video largo de 20 escenas tarda ~6 min solo en
+  imágenes). Con la clave gratuita va mucho más rápido.
+- Si todos los servicios de imágenes fallan, el video se genera igualmente con fondos de la paleta del proyecto.
+
+---
+
+## Estructura del código
+
 ```
+pilo.py                    # ★ programa maestro
+pilo_studio/
+├── pipeline.py            # orquestador de las 5 fases (con caché reanudable)
+├── director/guionista.py  # 1 · Claude (salida estructurada) / guion manual / plantilla
+├── audio/locutor.py       # 2 · edge-tts + marcas de tiempo por palabra
+├── visuals/estilo.py      #     biblia de estilo (consistencia)
+├── visuals/generador.py   # 3 · Pollinations → Hugging Face → referencias → placeholder
+├── assembly/subtitulos.py #     SRT + ASS sincronizados con la voz
+├── assembly/montador.py   # 4 · MoviePy (Ken Burns) + FFmpeg (subtítulos, música)
+├── storage/exportador.py  # 5 · salida/ + publicacion.txt
+└── storage/nube.py        #     subida con rclone (OneDrive, Drive, Dropbox…)
+.devcontainer/             # configuración del Codespace
+.github/workflows/         # producir.yml (videos en Actions) · tests.yml
+scripts/conectar_onedrive.sh
+```
+
+Pruebas (se ejecutan solas en cada push): `pytest -q`
