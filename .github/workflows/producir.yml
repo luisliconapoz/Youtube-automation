@@ -1,6 +1,7 @@
 # Produce un video en los servidores de GitHub, sin abrir un Codespace.
 # Desde el iPad: repositorio → Actions → "Producir video" → Run workflow.
 name: Producir video
+run-name: "Producir ${{ inputs.proyecto || inputs.canal }} (${{ inputs.formato }})"
 on:
   workflow_dispatch:
     inputs:
@@ -56,7 +57,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pilo-studio-${{ inputs.proyecto || inputs.canal }}
+          name: pilo-studio-${{ github.run_id }}
           path: salida/
           retention-days: 14
           if-no-files-found: warn
