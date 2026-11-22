@@ -85,6 +85,10 @@ def test_pipeline_completo_offline(proyecto, tmp_path, monkeypatch):
     assert final.exists() and final.stat().st_size > 1000
     assert final.parent.parent == tmp_path / "onedrive"
     assert (final.parent / "publicacion.txt").exists()
+    miniatura = final.with_name(final.stem + "_miniatura.jpg")
+    assert miniatura.exists()
+    from PIL import Image
+    assert Image.open(miniatura).size == (1080, 1920)
 
 
 def test_claude_sin_clave_devuelve_none(proyecto, monkeypatch):
@@ -101,7 +105,8 @@ def test_claude_convierte_salida_estructurada(proyecto, monkeypatch):
 
     from pilo_studio.director import guionista
 
-    salida = guionista.GuionIA(titulo="T", descripcion="D", etiquetas=["a"], escenas=[
+    salida = guionista.GuionIA(titulo="T", descripcion="D", etiquetas=["a"], miniatura_texto="WOW",
+                               miniatura_prompt="robot close-up", escenas=[
         guionista.EscenaIA(narracion="Hola", prompt_visual="robot", personajes=["Pilo"], escenario="nave")])
     capturado = {}
 
@@ -139,3 +144,15 @@ def test_programa_maestro_crea_proyecto_con_universo(tmp_path, monkeypatch):
     destino = pilo.crear_proyecto("Los agujeros negros explicados", None, EJEMPLO)
     assert (destino / "idea.md").read_text(encoding="utf-8").startswith("# Los agujeros negros explicados")
     assert "Pilo" in Proyecto.cargar(destino).estilo.personajes
+
+
+def test_miniatura_largo_1280x720(tmp_path):
+    from PIL import Image
+
+    from pilo_studio.visuals.miniatura import componer_miniatura
+
+    Image.new("RGB", (500, 300), "blue").save(tmp_path / "f.png")
+    out = componer_miniatura(tmp_path / "f.png", "El secreto del universo revelado hoy", "largo", tmp_path / "m.jpg")
+    img = Image.open(out)
+    assert img.size == (1280, 720) and out.stat().st_size < 2_000_000
+    assert img.getpixel((640, 650)) != img.getpixel((640, 50))  # hay texto/degradado abajo

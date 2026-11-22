@@ -43,6 +43,8 @@ class Guion:
     formato: str                       # "largo" | "short"
     descripcion: str = ""
     etiquetas: list[str] = field(default_factory=list)
+    miniatura_texto: str = ""          # 2-5 palabras impactantes para la miniatura
+    miniatura_prompt: str = ""         # descripción visual de la miniatura
     escenas: list[Escena] = field(default_factory=list)
 
     @property
@@ -64,5 +66,7 @@ class Guion:
             formato=d.get("formato", "largo"),
             descripcion=d.get("descripcion", ""),
             etiquetas=list(d.get("etiquetas", [])),
+            miniatura_texto=d.get("miniatura_texto", ""),
+            miniatura_prompt=d.get("miniatura_prompt", ""),
             escenas=[Escena.desde_dict({"id": i + 1, **e}) for i, e in enumerate(d.get("escenas", []))],
         )

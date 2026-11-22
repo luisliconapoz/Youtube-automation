@@ -30,11 +30,14 @@ def exportar(video: Path, guion: Guion, build: Path, cfg: dict) -> Path:
     scfg = cfg.get("salida", {})
     if scfg.get("guardar_srt", True) and (build / "subtitulos.srt").exists():
         shutil.copy2(build / "subtitulos.srt", destino / f"{base}.srt")
+    if (build / "miniatura.jpg").exists():
+        shutil.copy2(build / "miniatura.jpg", destino / f"{base}_miniatura.jpg")
     if scfg.get("guardar_guion", True):
         (destino / "guion.json").write_text(json.dumps(asdict(guion), ensure_ascii=False, indent=2), encoding="utf-8")
     # Metadatos listos para copiar/pegar al subir a YouTube/TikTok/Instagram
     hashtags = " ".join("#" + slug(t).replace("-", "") for t in guion.etiquetas)
     (destino / "publicacion.txt").write_text(
+        f"VIDEO:      {base}.mp4\nMINIATURA:  {base}_miniatura.jpg\nSUBTÍTULOS: {base}.srt\n\n"
         f"TÍTULO:\n{guion.titulo}\n\nDESCRIPCIÓN:\n{guion.descripcion}\n\n{hashtags}\n\n"
         f"ETIQUETAS:\n{', '.join(guion.etiquetas)}\n", encoding="utf-8")
     log.info("✅ Exportado a %s", final)

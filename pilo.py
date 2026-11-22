@@ -3,8 +3,8 @@
 
 Conecta todo el flujo en un solo comando:
 
-    idea ─► Claude (guion) ─► edge-tts (voz) ─► Pollinations/HF (imágenes)
-         ─► MoviePy + FFmpeg (video + subtítulos) ─► salida/ + OneDrive (rclone)
+    idea ─► Claude (guion) ─► lote de imágenes + miniatura (Pollinations/HF en paralelo)
+         ─► edge-tts (voz) ─► MoviePy + FFmpeg (video + subtítulos) ─► salida/ + OneDrive
 
 Uso:
     python pilo.py                                   # modo guiado (pregunta todo)
@@ -116,6 +116,33 @@ def preguntar() -> argparse.Namespace:
                               proyecto=None, hasta="exportar", regenerar_guion=False)
 
 
+# --------------------------------------------------------------------------- resumen
+def _rel(p: Path) -> str:
+    return str(p.relative_to(RAIZ)) if p.is_relative_to(RAIZ) else str(p)
+
+
+def resumen(resultados: dict[str, Path | None]) -> None:
+    print("\n" + "═" * 64)
+    print("  🎬 LISTO PARA REVISAR Y SUBIR")
+    print("═" * 64)
+    for f, r in resultados.items():
+        if r is None:
+            print(f"  {f.upper()}: ❌ error (revisa el registro de arriba)")
+            continue
+        if r.suffix != ".mp4":  # se detuvo antes de exportar (--hasta)
+            print(f"  {f.upper()}: {_rel(r)}")
+            continue
+        carpeta = r.parent
+        print(f"  {f.upper()}  ·  {_rel(carpeta)}/")
+        for nombre, patron in [("Video", "*.mp4"), ("Miniatura", "*_miniatura.jpg"),
+                               ("Subtítulos", "*.srt"), ("Título y descripción", "publicacion.txt")]:
+            encontrados = sorted(carpeta.glob(patron))
+            print(f"     {'✅' if encontrados else '—'} {nombre:<21} {encontrados[0].name if encontrados else ''}")
+    print("═" * 64)
+    print("  Descargar al iPad: pulsación larga sobre el archivo en el explorador → Download.")
+    print("  Si OneDrive está conectado, todo está también en OneDrive/PiloStudio/Videos/.")
+
+
 # --------------------------------------------------------------------------- main
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Pilo Studio: de una idea a un video publicado.")
@@ -152,11 +179,7 @@ def main(argv: list[str] | None = None) -> int:
             log.exception("❌ Falló el formato %s: %s", f, e)
             resultados[f] = None
 
-    print("\n" + "═" * 60)
-    for f, r in resultados.items():
-        print(f"  {f:<6} → {r.relative_to(RAIZ) if r and r.is_relative_to(RAIZ) else r or 'ERROR'}")
-    print("═" * 60)
-    print("Descarga: clic derecho sobre el .mp4 en el explorador → Download.")
+    resumen(resultados)
     return 0 if all(resultados.values()) else 1
 
 

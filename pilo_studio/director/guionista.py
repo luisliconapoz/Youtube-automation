@@ -56,6 +56,8 @@ class GuionIA(BaseModel):
     titulo: str
     descripcion: str
     etiquetas: list[str]
+    miniatura_texto: str
+    miniatura_prompt: str
     escenas: list[EscenaIA]
 
 
@@ -80,6 +82,9 @@ Formato: {formato_desc}
 - "personajes": nombres de los personajes del universo visual que aparecen en la escena (lista vacía si ninguno).
 - "escenario": nombre de un escenario del universo visual, o null.
 - "descripcion" y "etiquetas": listas para publicar en YouTube (descripción de 2-3 frases, 8-15 etiquetas).
+- "miniatura_texto": 2 a 5 palabras MUY llamativas para la miniatura (en el idioma del video, sin emojis).
+- "miniatura_prompt": descripción en INGLÉS de una miniatura de YouTube irresistible (primer plano del
+  protagonista con emoción intensa, alto contraste, composición simple, espacio libre para el texto, sin texto).
 - La última escena cierra con una llamada a la acción breve (suscribirse / seguir)."""
 
 
@@ -179,7 +184,8 @@ def guion_plantilla(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaE
     for b in bloques:
         presentes = [n for n in nombres if n.lower() in b.lower()]
         escenas.append({"narracion": b, "prompt_visual": f"cinematic illustration of: {b}", "personajes": presentes})
-    return Guion.desde_dict({"titulo": titulo, "formato": formato, "descripcion": cuerpo[:300], "escenas": escenas})
+    return Guion.desde_dict({"titulo": titulo, "formato": formato, "descripcion": cuerpo[:300], "escenas": escenas,
+                             "miniatura_texto": " ".join(titulo.split()[:5])})
 
 
 PROVEEDORES = {"manual": guion_manual, "claude": guion_claude, "plantilla": guion_plantilla}

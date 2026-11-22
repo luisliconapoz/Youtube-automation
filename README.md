@@ -4,14 +4,22 @@ Fábrica de videos **100 % en la nube**: largos (7–10 min, 16:9) y Shorts/Reel
 Funciona desde un **iPad** con GitHub Codespaces o GitHub Actions. No hay que instalar nada.
 
 ```
- tu idea ─► [1] Claude escribe el guion por escenas
-          ─► [2] edge-tts pone la voz (gratis)
-          ─► [3] Pollinations.ai / Hugging Face generan las imágenes (gratis)
+ tu idea ─► [1] Claude escribe el guion por escenas (+ texto y concepto de la miniatura)
+          ─► [2] LOTE de imágenes: todas las escenas + la miniatura, en paralelo (gratis)
+          ─► [3] edge-tts pone la voz (gratis)
           ─► [4] MoviePy + FFmpeg montan el video y queman los subtítulos
           ─► [5] salida/  +  OneDrive (subida automática con rclone)
 ```
 
-Cada video produce `video.mp4`, `subtitulos.srt`, `publicacion.txt` (título, descripción y hashtags) y `guion.json`.
+Un solo comando hace todo. Tu única tarea es **revisar y subir**. Cada video entrega:
+
+| Archivo | Contenido |
+|---|---|
+| `<fecha>_<título>_<formato>.mp4` | El video final con subtítulos incrustados |
+| `…_miniatura.jpg` | Miniatura con titular grande (1280×720 para el largo, portada 1080×1920 para el Short) |
+| `….srt` | Subtítulos aparte (por si la plataforma los pide) |
+| `publicacion.txt` | Título, descripción, hashtags y etiquetas listos para copiar y pegar |
+| `guion.json` | El guion completo |
 
 ---
 
@@ -67,6 +75,8 @@ python pilo.py --diagnostico
 Cuando termina, el video está en `salida/<fecha>_<título>_<formato>/` y, si conectaste OneDrive, también en
 `OneDrive/PiloStudio/Videos/`. Para descargarlo al iPad: en el **explorador** (izquierda), clic derecho
 (pulsación larga) sobre el `.mp4` → **Download** → se guarda en la app Archivos.
+
+Al terminar verás un resumen **LISTO PARA REVISAR Y SUBIR** con todos los archivos.
 
 ### Opción B: GitHub Actions (sin abrir el Codespace)
 Ideal para videos largos o para lanzar varios seguidos desde el móvil:
@@ -153,14 +163,43 @@ una ejecución interrumpida continúa donde se quedó.
 
 ---
 
-## 6. Límites a tener en cuenta
+## 6. Cómo se generan las imágenes (en lote)
+
+En lugar de pedir las imágenes una por una, Pilo Studio mete **todas** las del video (escenas y miniatura)
+en una **cola compartida** antes de pasar a la voz y al montaje:
+
+```
+cola ──┬─► Pollinations   4 hilos  (con clave; sin clave 1 hilo, 1 imagen / 16 s)
+       └─► Hugging Face   2 hilos  (si hay HF_TOKEN)
+            │
+            └─► lo que falle se reintenta, pasa al otro servicio y, en último caso,
+                se resuelve al instante con tus referencias o un fondo de la paleta
+```
+
+- Los dos servicios trabajan **a la vez** sobre la misma cola, así que se suman sus velocidades.
+- Cada servicio respeta su ritmo máximo y hace una pausa automática si responde "demasiadas peticiones" (429).
+  Así no se satura ni te bloquea.
+- Si un servicio falla muchas veces seguidas, se desactiva (cortacircuitos) y los demás terminan el trabajo.
+- Las imágenes ya generadas se guardan. Si repites la ejecución, solo se piden las que falten.
+
+Para ajustar los hilos y ritmos, usa la sección `imagenes:` de `config/settings.yaml`.
+
+**Velocidad aproximada para un video largo de 20 escenas:**
+
+| Configuración | Tiempo de imágenes |
+|---|---|
+| Sin claves (Pollinations anónimo) | ~6 min |
+| Con `HF_TOKEN` | ~2–3 min |
+| Con `POLLINATIONS_API_KEY` (+ `HF_TOKEN`) | menos de 1 min |
+
+---
+
+## 7. Límites a tener en cuenta
 
 - **Codespaces gratis:** 120 horas-núcleo al mes (60 h con la máquina de 2 núcleos). Un video largo tarda
   unos 15–30 min en renderizar. El Codespace se suspende tras 30 min sin actividad; súbelo en
   *Settings → Codespaces → Default idle timeout*, o usa Actions para los videos largos.
   **Detén el Codespace** cuando termines (github.com/codespaces → ⋯ → Stop).
-- **Pollinations anónimo** es lento (~16 s por imagen: un video largo de 20 escenas tarda ~6 min solo en
-  imágenes). Con la clave gratuita va mucho más rápido.
 - Si todos los servicios de imágenes fallan, el video se genera igualmente con fondos de la paleta del proyecto.
 
 ---
@@ -172,9 +211,11 @@ pilo.py                    # ★ programa maestro
 pilo_studio/
 ├── pipeline.py            # orquestador de las 5 fases (con caché reanudable)
 ├── director/guionista.py  # 1 · Claude (salida estructurada) / guion manual / plantilla
-├── audio/locutor.py       # 2 · edge-tts + marcas de tiempo por palabra
+├── audio/locutor.py       # 3 · edge-tts + marcas de tiempo por palabra
 ├── visuals/estilo.py      #     biblia de estilo (consistencia)
-├── visuals/generador.py   # 3 · Pollinations → Hugging Face → referencias → placeholder
+├── visuals/cola.py        # 2 · cola en lote: hilos por proveedor, ritmo, reintentos, cortacircuitos
+├── visuals/generador.py   #     proveedores (Pollinations, Hugging Face) + respaldo local
+├── visuals/miniatura.py   #     miniatura con titular
 ├── assembly/subtitulos.py #     SRT + ASS sincronizados con la voz
 ├── assembly/montador.py   # 4 · MoviePy (Ken Burns) + FFmpeg (subtítulos, música)
 ├── storage/exportador.py  # 5 · salida/ + publicacion.txt

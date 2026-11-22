@@ -1,6 +1,7 @@
 """Orquestador del pipeline de Pilo Studio.
 
-    idea + referencias ─► [1 Guion] ─► [2 Audio] ─► [3 Imágenes] ─► [4 Montaje] ─► [5 Exportar]
+    idea + referencias ─► [1 Guion] ─► [2 Lote de imágenes + miniatura] ─► [3 Voz]
+                       ─► [4 Montaje + subtítulos] ─► [5 Exportar + subir a OneDrive]
 
 Cada fase guarda su resultado en proyectos/<x>/build/<formato>/, por lo que
 una ejecución interrumpida se reanuda sin repetir trabajo (ni llamadas de red).
@@ -21,8 +22,9 @@ from pilo_studio.storage.exportador import exportar
 from pilo_studio.utils import log
 from pilo_studio.visuals.estilo import BibliaEstilo
 from pilo_studio.visuals.generador import generar_imagenes
+from pilo_studio.visuals.miniatura import componer_miniatura
 
-FASES = ["guion", "audio", "imagenes", "montaje", "exportar"]
+FASES = ["guion", "imagenes", "audio", "montaje", "exportar"]
 
 
 def producir(ruta_proyecto: Path | str, formato: str = "largo", hasta: str = "exportar",
@@ -49,19 +51,21 @@ def producir(ruta_proyecto: Path | str, formato: str = "largo", hasta: str = "ex
     if limite == 0:
         return ruta_guion
 
-    # 2. Audio
-    log.info("[2/5] Locución con edge-tts (%s)…", cfg["audio"]["voz"])
-    generar_audio(guion, build, cfg)
+    # 2. Imágenes: todas en un solo lote (escenas + fondo de la miniatura)
+    log.info("[2/5] Lote de imágenes (semilla de estilo %d)…", biblia.semilla)
+    generar_imagenes(guion, build, cfg, biblia)
+    componer_miniatura(build / "imagenes" / "miniatura_fondo.png", guion.miniatura_texto or guion.titulo,
+                       guion.formato, build / "miniatura.jpg")
     guion.guardar(ruta_guion)
     if limite == 1:
-        return build / "audio"
+        return build / "imagenes"
 
-    # 3. Imágenes
-    log.info("[3/5] Imágenes (semilla de estilo %d)…", biblia.semilla)
-    generar_imagenes(guion, build, cfg, biblia)
+    # 3. Voz
+    log.info("[3/5] Locución con edge-tts (%s)…", cfg["audio"]["voz"])
+    generar_audio(guion, build, cfg)
     guion.guardar(ruta_guion)
     if limite == 2:
-        return build / "imagenes"
+        return build / "audio"
 
     # 4. Montaje
     log.info("[4/5] Ensamblando video y subtítulos…")
