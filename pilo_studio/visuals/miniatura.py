@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from pilo_studio.models import Guion
 from pilo_studio.utils import log
-from pilo_studio.visuals.estilo import BibliaEstilo
+from pilo_studio.visuals.estilo import BibliaEstilo, colores_texto, limpiar_prompt
 
 FUENTES = ["DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "Arial Bold.ttf", "arialbd.ttf"]
 
@@ -23,18 +23,21 @@ def tam_miniatura(formato: str) -> tuple[int, int]:
 
 
 def prompt_miniatura(guion: Guion, biblia: BibliaEstilo) -> str:
+    """Fondo de la miniatura: mismo estilo neón 2D y personajes oficiales; la imagen NO lleva texto."""
     base = guion.miniatura_prompt or (
-        f"{guion.titulo}, eye-catching YouTube thumbnail, close-up of the main subject with an intense emotion, "
-        "dramatic rim lighting, high contrast, simple composition, empty space for a headline")
-    partes = [biblia.estilo.descripcion, base]
-    presentes = {p for e in guion.escenas for p in e.personajes}
-    for nombre, desc in biblia.estilo.personajes.items():
-        if nombre in presentes or nombre.lower() in base.lower():
-            partes.append(f"{nombre}: {desc}")
+        "close-up of the main character with an intense, expressive face, dramatic neon glow, "
+        "simple bold composition, one side left empty for a headline")
+    partes = [biblia.descripcion, f"YouTube thumbnail background: {limpiar_prompt(base)}"]
+    presentes = [p for e in guion.escenas for p in e.personajes]
+    principal = max(set(presentes), key=presentes.count) if presentes else None
+    for p in biblia.estilo.personajes.values():
+        if p.nombre == principal or p.nombre.lower() in base.lower():
+            colores = f"; colors {colores_texto(p.colores)}" if p.colores else ""
+            partes.append(f"{p.nombre} ({p.rol}{colores}): {p.descripcion_para(biblia.estilo.tematica)}")
     if biblia.paleta:
-        partes.append(f"color palette {' '.join(biblia.paleta)}")
-    partes.append("no text, no letters, no watermark")
-    return ", ".join(p.strip().rstrip(".") for p in partes if p)
+        partes.append(f"color palette: {colores_texto(biblia.paleta)}")
+    partes.append("absolutely no " + ", no ".join(biblia.prohibido))
+    return ", ".join(x.strip().rstrip(".") for x in partes if x)
 
 
 def _fuente(tam: int) -> ImageFont.FreeTypeFont:

@@ -1,0 +1,54 @@
+# ════════════════════════════════════════════════════════════════════
+#  UNIVERSO OFICIAL: personajes de Money Lab / Wild Money
+#
+#  ⚠️  Las descripciones, roles y colores de abajo son PROVISIONALES:
+#      cópialos de tu guía oficial de personajes y después cambia
+#      `provisional: true` a `false` para que desaparezca el aviso.
+#      Pon también sus imágenes oficiales en referencias/ con el nombre
+#      del personaje (Cyan.png, Green.png, Farmer.png…).
+# ════════════════════════════════════════════════════════════════════
+nombre: Money Lab
+provisional: true
+
+estilo:
+  # Temática activa: elige qué variante de cada personaje se dibuja
+  # (debe coincidir con una clave de `variantes`). Opciones: Money Lab | Wild Money
+  tematica: Money Lab
+
+  # Vacío = usa direccion_arte.estilo de config/settings.yaml (neón 2D sobre negro)
+  descripcion: ""
+
+  paleta: ["#000000", "#00e5ff", "#39ff14", "#ff2bd6", "#ffd60a"]
+
+  personajes:
+    Cyan:
+      rol: "narrator and guide who explains each financial concept"
+      colores: ["#00e5ff"]
+      descripcion: "friendly rounded character drawn with glowing cyan neon outlines, big expressive eyes, simple limbs"
+      variantes:
+        Money Lab: "friendly rounded character with glowing cyan neon outlines wearing a lab coat and safety goggles"
+        Wild Money: "friendly rounded character with glowing cyan neon outlines wearing an explorer hat and backpack"
+    Green:
+      rol: "the disciplined saver and investor who makes smart decisions"
+      colores: ["#39ff14"]
+      descripcion: "calm confident character drawn with glowing green neon outlines, neat posture"
+    Pink:
+      rol: "the impulsive spender who learns from mistakes"
+      colores: ["#ff2bd6"]
+      descripcion: "energetic character drawn with glowing pink neon outlines, shopping bags, playful look"
+    Farmer:
+      rol: "the patient grower: compound interest and long-term investing"
+      colores: ["#ffb703", "#39ff14"]
+      descripcion: "humble farmer drawn with warm orange neon outlines, straw hat, tending glowing coin plants"
+    Rich:
+      rol: "the wealthy mentor who shows how money works for you"
+      colores: ["#ffd60a"]
+      descripcion: "elegant character drawn with golden yellow neon outlines, suit and top hat, composed smile"
+
+  escenarios:
+    laboratorio: "minimalist neon laboratory with glowing flasks and coin-shaped bubbles on black"
+    selva: "wild jungle of glowing neon leaves and vines on black, with coins hidden among plants"
+    ciudad: "minimalist neon city skyline outline on black"
+    granja: "neon farm field with rows of glowing coin plants on black"
+
+config: {}

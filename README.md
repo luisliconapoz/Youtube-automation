@@ -4,11 +4,11 @@ Fábrica de videos **100 % en la nube**: largos (7–10 min, 16:9) y Shorts/Reel
 Funciona desde un **iPad** con GitHub Codespaces o GitHub Actions. No hay que instalar nada.
 
 ```
- tu idea ─► [1] Claude escribe el guion por escenas (+ texto y concepto de la miniatura)
-          ─► [2] LOTE de imágenes: todas las escenas + la miniatura, en paralelo (gratis)
-          ─► [3] edge-tts pone la voz (gratis)
-          ─► [4] MoviePy + FFmpeg montan el video y queman los subtítulos
-          ─► [5] salida/  +  OneDrive (subida automática con rclone)
+ tu idea ─► [1] DIRECCIÓN Y GUION   Claude escribe el guion y un prompt de imagen avanzado por escena
+                                    (neón 2D sobre negro, personajes oficiales, expresión y pose)
+          ─► [2] IMÁGENES ∥ VOZ     lote de imágenes en paralelo  +  voz con edge-tts, al mismo tiempo
+          ─► [3] ENSAMBLAJE         MoviePy + FFmpeg, subtítulos sincronizados quemados en pantalla
+          ─► [4] EXPORTACIÓN        .mp4 + miniatura + .srt + publicacion.txt → salida/ y OneDrive
 ```
 
 Un solo comando hace todo. Tu única tarea es **revisar y subir**. Cada video entrega:
@@ -68,6 +68,7 @@ O en una sola línea:
 ```bash
 python pilo.py "Por qué los gatos ronronean" --formato ambos
 python pilo.py "Viaje a Marte" --formato short --universo proyectos/ejemplo-pilo-espacio
+python pilo.py "Qué es la inflación" --sin-universo   # sin personajes oficiales
 python pilo.py --proyecto proyectos/ejemplo-pilo-espacio --formato largo
 python pilo.py --diagnostico
 ```
@@ -108,40 +109,63 @@ El script te guía paso a paso. Lo único raro en el iPad: tras iniciar sesión 
 
 ---
 
-## 4. Personajes y estilo visual consistentes
+## 4. Dirección de arte: neón 2D y personajes oficiales
 
-Cada proyecto vive en `proyectos/<nombre>/`:
+### Reglas fijas para todas las imágenes
+Están en `config/settings.yaml → direccion_arte` y se aplican a cada imagen de la secuencia
+(`image_001.png`, `image_002.png`…):
 
-```
-idea.md         ← la idea (lo único obligatorio)
-proyecto.yaml   ← estilo, personajes y escenarios
-referencias/    ← imágenes de referencia (opcional)
-```
+- **Estilo:** ilustración vectorial minimalista en neón 2D sobre fondo negro puro, limpia y profesional
+  (16:9 en el video largo, 9:16 en el Short).
+- **Personajes:** Claude **solo puede usar** los personajes oficiales del universo. Es una lista cerrada:
+  si intenta usar otro, la respuesta se rechaza. Cada personaje aparece con su rol, sus colores y su aspecto
+  oficial, tomados de su ficha.
+- **Expresión y pose:** para cada personaje de cada escena, Claude elige una expresión de la lista permitida
+  (Talking, Thinking, Happy, Explaining…) según lo que se dice, y una pose corporal concreta.
+- **Prohibido:** texto, títulos, letras, números, marcas de agua, logos, renders 3D y fotos realistas.
+  Se aplica de cuatro formas:
+  1. está en las instrucciones de Claude;
+  2. cada prompt se limpia antes de enviarlo (se borran las frases entre comillas y las cifras; los códigos
+     de color se convierten en nombres);
+  3. cada prompt termina con la lista de prohibiciones;
+  4. la lista se envía también como prompt negativo al generador.
 
-Ejemplo de `proyecto.yaml` (ver `proyectos/ejemplo-pilo-espacio/`):
+El orden de cada prompt es siempre el mismo:
+`estilo neón 2D → escena → ficha de cada personaje (rol, colores, aspecto, expresión, pose) → escenario →
+paleta → encuadre → prohibiciones`. Si un prompt es demasiado largo, se recorta la descripción de la escena,
+nunca las reglas.
+
+### El universo `money-lab` (por defecto)
+`proyectos/money-lab/proyecto.yaml` define a **Cyan, Green, Pink, Farmer y Rich**, con su rol, sus colores
+y sus variantes por temática (`Money Lab` / `Wild Money`). Se usa automáticamente en cada idea nueva
+(lo controla `universo_por_defecto`).
+
+> ⚠️ **Antes del primer video:** las descripciones y colores de esos personajes son **provisionales**.
+> Cópialos de tu guía oficial en `proyectos/money-lab/proyecto.yaml` y cambia `provisional: true` a `false`.
+> Mientras no lo hagas, el diagnóstico y cada ejecución muestran un aviso.
+
+Ficha de un personaje:
 
 ```yaml
-estilo:
-  descripcion: "3D animated movie style, soft volumetric lighting, vibrant colors"
-  paleta: ["#0b132b", "#5bc0be", "#ffb703"]   # vacío = se extrae de referencias/
-  personajes:
-    Pilo: "a small friendly orange robot with round glowing blue eyes and a single antenna"
-  escenarios:
-    nave: "inside a cozy retro-futuristic spaceship cockpit"
+personajes:
+  Cyan:
+    rol: "narrator and guide who explains each financial concept"
+    colores: ["#00e5ff"]
+    descripcion: "friendly rounded character with glowing cyan neon outlines"
+    variantes:                       # opcional: aspecto según la temática activa
+      Money Lab: "… wearing a lab coat and safety goggles"
+      Wild Money: "… wearing an explorer hat and backpack"
 ```
 
-Para mantener la consistencia, Pilo Studio:
-- antepone el mismo estilo a todos los prompts;
-- inyecta la descripción fija de cada personaje cuando aparece;
-- añade la paleta de color;
-- usa la misma semilla en todo el proyecto.
+Para cambiar de temática, edita `estilo.tematica: Wild Money` en el proyecto.
+Para otro universo, crea otra carpeta con su `proyecto.yaml` y úsala con `--universo proyectos/otro`.
 
-**Subir referencias desde el iPad:** en el Codespace, clic derecho en la carpeta `referencias/` → **Upload…**.
-O en github.com: entra en la carpeta → **Add file → Upload files** (necesario si vas a usar Actions).
-Si una imagen se llama como un personaje (`Pilo.png`), se usa como respaldo para sus escenas.
+**Subir las imágenes oficiales desde el iPad:** en el Codespace, clic derecho en `proyectos/money-lab/referencias/`
+→ **Upload…**. O en github.com: **Add file → Upload files** (necesario si vas a usar Actions). Llámalas como el
+personaje (`Cyan.png`). Sirven para extraer la paleta y como respaldo si la nube falla.
 
-Para crear un "universo" reutilizable, prepara un proyecto con personajes y referencias. Luego produce
-nuevas ideas con `--universo proyectos/mi-universo`.
+**Miniatura:** el fondo se genera con el mismo estilo neón y sin texto. Después se le añade el titular grande,
+como en una miniatura de YouTube. Para no añadirlo, pon `miniatura.titular: false`.
 
 ---
 
@@ -158,22 +182,24 @@ nuevas ideas con `--universo proyectos/mi-universo`.
 Cualquier clave puede sobrescribirse por proyecto en `proyecto.yaml → config:`.
 
 **Revisar el guion antes de renderizar:** `python pilo.py --proyecto proyectos/x --hasta guion`, edita
-`proyectos/x/build/<formato>/guion.json` y vuelve a ejecutar sin `--hasta`. Cada fase guarda caché, así que
-una ejecución interrumpida continúa donde se quedó.
+`proyectos/x/build/<formato>/guion.json` y vuelve a ejecutar sin `--hasta`. Los pasos válidos para `--hasta`
+son `guion`, `medios`, `montaje` y `exportar`. Cada paso guarda caché, así que una ejecución interrumpida
+continúa donde se quedó.
 
 ---
 
 ## 6. Cómo se generan las imágenes (en lote)
 
-En lugar de pedir las imágenes una por una, Pilo Studio mete **todas** las del video (escenas y miniatura)
-en una **cola compartida** antes de pasar a la voz y al montaje:
+En lugar de pedir las imágenes una por una, Pilo Studio mete **todas** las del video (secuencia y miniatura)
+en una **cola compartida**. Mientras tanto, edge-tts genera la voz en paralelo:
 
 ```
 cola ──┬─► Pollinations   4 hilos  (con clave; sin clave 1 hilo, 1 imagen / 16 s)
        └─► Hugging Face   2 hilos  (si hay HF_TOKEN)
             │
-            └─► lo que falle se reintenta, pasa al otro servicio y, en último caso,
-                se resuelve al instante con tus referencias o un fondo de la paleta
+            └─► lo que falle se reintenta, pasa al otro servicio y tiene una ronda extra
+                a los 30 s. Solo si todo falla, se reutiliza la imagen vecina de la secuencia
+                (o una referencia oficial).
 ```
 
 - Los dos servicios trabajan **a la vez** sobre la misma cola, así que se suman sus velocidades.
@@ -209,16 +235,16 @@ Para ajustar los hilos y ritmos, usa la sección `imagenes:` de `config/settings
 ```
 pilo.py                    # ★ programa maestro
 pilo_studio/
-├── pipeline.py            # orquestador de las 5 fases (con caché reanudable)
+├── pipeline.py            # orquestador de los 4 pasos (imágenes ∥ voz, caché reanudable)
 ├── director/guionista.py  # 1 · Claude (salida estructurada) / guion manual / plantilla
-├── audio/locutor.py       # 3 · edge-tts + marcas de tiempo por palabra
-├── visuals/estilo.py      #     biblia de estilo (consistencia)
+├── audio/locutor.py       # 2 · edge-tts + marcas de tiempo por palabra
+├── visuals/estilo.py      # 1 · dirección de arte: neón 2D, fichas de personaje, limpieza de prompts
 ├── visuals/cola.py        # 2 · cola en lote: hilos por proveedor, ritmo, reintentos, cortacircuitos
 ├── visuals/generador.py   #     proveedores (Pollinations, Hugging Face) + respaldo local
 ├── visuals/miniatura.py   #     miniatura con titular
 ├── assembly/subtitulos.py #     SRT + ASS sincronizados con la voz
-├── assembly/montador.py   # 4 · MoviePy (Ken Burns) + FFmpeg (subtítulos, música)
-├── storage/exportador.py  # 5 · salida/ + publicacion.txt
+├── assembly/montador.py   # 3 · MoviePy (Ken Burns) + FFmpeg (subtítulos, música)
+├── storage/exportador.py  # 4 · salida/ + publicacion.txt
 └── storage/nube.py        #     subida con rclone (OneDrive, Drive, Dropbox…)
 .devcontainer/             # configuración del Codespace
 .github/workflows/         # producir.yml (videos en Actions) · tests.yml
