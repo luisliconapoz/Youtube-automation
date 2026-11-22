@@ -4,24 +4,26 @@ name: Producir video
 on:
   workflow_dispatch:
     inputs:
+      canal:
+        description: "Canal (personajes y guía oficial)"
+        required: true
+        default: fact-stick
+        type: choice
+        options: [fact-stick, money-lab, wild-money]
       idea:
-        description: "Idea del video (deja vacío si usas un proyecto existente)"
+        description: "Idea o tema del video (deja vacío si usas un proyecto existente)"
         required: false
         type: string
       proyecto:
         description: "Proyecto existente, p.ej. proyectos/ejemplo-pilo-espacio (opcional)"
         required: false
         type: string
-      universo:
-        description: "Copiar personajes/estilo de este proyecto (opcional)"
-        required: false
-        type: string
       formato:
-        description: "Formato"
+        description: "Formato (short = 9:16 de 40-60 s)"
         required: true
-        default: ambos
+        default: short
         type: choice
-        options: [ambos, largo, short]
+        options: [short, largo, ambos]
 
 jobs:
   producir:
@@ -44,12 +46,11 @@ jobs:
           RCLONE_CONF_B64: ${{ secrets.RCLONE_CONF_B64 }}
           IDEA: ${{ inputs.idea }}
           PROYECTO: ${{ inputs.proyecto }}
-          UNIVERSO: ${{ inputs.universo }}
+          CANAL: ${{ inputs.canal }}
           FORMATO: ${{ inputs.formato }}
         run: |
           args=(--formato "$FORMATO")
-          if [ -n "$PROYECTO" ]; then args+=(--proyecto "$PROYECTO"); else args+=("$IDEA"); fi
-          if [ -n "$UNIVERSO" ]; then args+=(--universo "$UNIVERSO"); fi
+          if [ -n "$PROYECTO" ]; then args+=(--proyecto "$PROYECTO"); else args+=("$IDEA" --canal "$CANAL"); fi
           python pilo.py "${args[@]}"
       - name: Guardar el video como artefacto descargable
         if: always()

@@ -47,10 +47,11 @@ def test_prompt_neon_con_reparto_y_prohibiciones(proyecto):
     p = Proyecto.cargar(proyecto)
     b = BibliaEstilo(p, cargar_config(p.ruta))
     e = Escena(1, "Pilo duda", 'Pilo looks at a sign reading "SALE 50%" next to 3 coins', escenario="nave",
-               reparto=[{"personaje": "Pilo", "expresion": "Thinking", "pose": "hand on chin"}])
+               reparto=[{"personaje": "Pilo", "expresion": "Thinking", "pose": "Thinking", "accion": "holding a coin"}])
     prompt = b.prompt_final(e, "16:9 widescreen")
-    assert prompt.startswith("minimalist 2D neon vector illustration on a pure black background")
-    assert "curious explorer robot" in prompt and "thinking expression" in prompt and "pose: hand on chin" in prompt
+    assert prompt.startswith("simple minimalist 2D neon vector illustration on a pure black background")
+    assert "curious explorer robot" in prompt and "thinking expression" in prompt
+    assert "pose: hand on chin, thinking" in prompt and "holding a coin" in prompt
     import re
     assert "SALE" not in prompt and "%" not in prompt and "#" not in prompt
     assert set(re.findall(r"\d+", prompt)) <= {"2", "16", "9", "3"}  # solo "2D", "16:9" y "no 3D render"
@@ -65,11 +66,18 @@ def test_limpiar_prompt():
     assert limpiar_prompt("2D neon coin with 3 stacks") == "2D neon coin with stacks"
 
 
-def test_universo_money_lab_carga_personajes_oficiales():
+@pytest.mark.parametrize("canal,personajes,nicho", [
+    ("fact-stick", {"Blue", "Green", "Pink", "Farmer", "Rich"}, "personal finance"),
+    ("money-lab", {"Cyan", "Lime", "Brown", "Gray"}, "real estate"),
+    ("wild-money", {"Orange", "Purple", "White", "Teal"}, "billionaires"),
+])
+def test_canales_oficiales(canal, personajes, nicho):
     from pilo_studio.config import RAIZ
 
-    p = Proyecto.cargar_meta(RAIZ / "proyectos" / "money-lab")
-    assert {"Cyan", "Green", "Pink", "Farmer", "Rich"} <= set(p["personajes"])
+    ruta = RAIZ / "proyectos" / canal
+    meta = Proyecto.cargar_meta(ruta)
+    assert set(meta["personajes"]) == personajes and nicho in meta["nicho"] and not meta["provisional"]
+    assert (ruta / "guia" / "guia_oficial.jpg").exists()
 
 
 def test_paleta_desde_referencias(tmp_path):
@@ -146,7 +154,8 @@ def test_claude_convierte_salida_estructurada(proyecto, monkeypatch):
                 "titulo": "T", "descripcion": "D", "etiquetas": ["a"], "miniatura_texto": "WOW",
                 "miniatura_prompt": "robot close-up",
                 "escenas": [{"narracion": "Hola", "prompt_visual": "robot waves", "escenario": "nave",
-                             "reparto": [{"personaje": "Pilo", "expresion": "Happy", "pose": "waving"}]}]})
+                             "reparto": [{"personaje": "Pilo", "expresion": "Happy", "pose": "Thumbs up",
+                                          "accion": "waving"}]}]})
 
         def __enter__(self):
             return self
@@ -169,8 +178,8 @@ def test_claude_convierte_salida_estructurada(proyecto, monkeypatch):
     g = guionista.guion_claude(p, "short", cfg, BibliaEstilo(p, cfg))
     e = g.escenas[0]
     assert g.titulo == "T" and e.id == 1 and e.personajes == ["Pilo"]
-    assert e.reparto == [{"personaje": "Pilo", "expresion": "Happy", "pose": "waving"}]
-    contenido = capturado["messages"][0]["content"]
+    assert e.reparto == [{"personaje": "Pilo", "expresion": "Happy", "pose": "Thumbs up", "accion": "waving"}]
+    contenido = capturado["messages"][0]["content"][-1]["text"]
     assert "orange robot" in contenido and "Thinking" in contenido and "PROHIBIDO" in contenido
     assert "neón 2D" in capturado["system"]
 
@@ -185,9 +194,10 @@ def test_esquema_solo_admite_personajes_y_expresiones_oficiales(proyecto):
     base = {"titulo": "T", "descripcion": "", "etiquetas": [], "miniatura_texto": "", "miniatura_prompt": ""}
     escena = {"narracion": "x", "prompt_visual": "y", "escenario": None}
     Modelo.model_validate({**base, "escenas": [{**escena, "reparto": [
-        {"personaje": "Pilo", "expresion": "Thinking", "pose": "hand on chin"}]}]})
-    for malo in ({"personaje": "Batman", "expresion": "Happy", "pose": "x"},
-                 {"personaje": "Pilo", "expresion": "Furioso", "pose": "x"}):
+        {"personaje": "Pilo", "expresion": "Smug", "pose": "Arms crossed", "accion": ""}]}]})
+    for malo in ({"personaje": "Batman", "expresion": "Happy", "pose": "Pointing", "accion": ""},
+                 {"personaje": "Pilo", "expresion": "Furioso", "pose": "Pointing", "accion": ""},
+                 {"personaje": "Pilo", "expresion": "Happy", "pose": "Bailando", "accion": ""}):
         with pytest.raises(pydantic.ValidationError):
             Modelo.model_validate({**base, "escenas": [{**escena, "reparto": [malo]}]})
 
@@ -225,9 +235,9 @@ def test_miniatura_largo_1280x720(tmp_path):
 def test_prompt_largo_se_recorta_sin_perder_reglas(proyecto):
     p = Proyecto.cargar(proyecto)
     b = BibliaEstilo(p, cargar_config(p.ruta))
-    e = Escena(1, "", "robot " * 600, reparto=[{"personaje": "Pilo", "expresion": "Happy", "pose": "waving"}])
+    e = Escena(1, "", "robot " * 600, reparto=[{"personaje": "Pilo", "expresion": "Happy", "pose": "Pointing"}])
     prompt = b.prompt_final(e)
-    assert len(prompt) <= 1400 and prompt.endswith("no realistic textures") and "orange robot" in prompt
+    assert len(prompt) <= 1400 and prompt.endswith("no cluttered dashboards") and "orange robot" in prompt
 
 
 def test_respaldo_reutiliza_imagen_vecina(proyecto, monkeypatch):
@@ -251,3 +261,61 @@ def test_respaldo_reutiliza_imagen_vecina(proyecto, monkeypatch):
     g = Guion("t", "short", escenas=[Escena(1, "a", "x"), Escena(2, "b", "y")])
     generador.generar_imagenes(g, p.build("short"), cfg, BibliaEstilo(p, cfg))
     assert Image.open(g.escenas[1].imagen).getpixel((5, 5)) == (0, 229, 255)  # copia de image_001
+
+
+def test_canal_envia_guia_oficial_a_claude(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from pilo_studio.config import RAIZ
+    from pilo_studio.director import guionista
+
+    destino = tmp_path / "canal"
+    shutil.copytree(RAIZ / "proyectos" / "wild-money", destino)
+    (destino / "idea.md").write_text("# Cómo gana dinero Netflix\n\nidea", encoding="utf-8")
+    capturado = {}
+
+    class Stream:
+        def __init__(self, **kw):
+            capturado.update(kw)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def get_final_message(self):
+            return SimpleNamespace(stop_reason="refusal", parsed_output=None, usage=None)
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    monkeypatch.setattr(guionista.anthropic, "Anthropic",
+                        lambda: SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(stream=Stream))))
+    p = Proyecto.cargar(destino)
+    cfg = cargar_config(p.ruta)
+    assert guionista.guion_claude(p, "short", cfg, BibliaEstilo(p, cfg)) is None  # refusal -> siguiente proveedor
+    bloques = capturado["messages"][0]["content"]
+    assert bloques[0]["type"] == "image" and bloques[0]["source"]["media_type"] == "image/jpeg"
+    texto = bloques[-1]["text"]
+    assert "billionaires" in texto and "Purple" in texto and "golden crown" in texto
+    assert "40 a 58 segundos" in texto and "Entre 8 y 12 escenas" in texto
+    assert "Arms crossed" in texto and "Smug" in texto
+
+
+def test_short_demasiado_largo_se_acelera(proyecto, monkeypatch):
+    from pilo_studio.audio import locutor
+
+    llamadas = []
+
+    def falso(guion, build, cfg):
+        llamadas.append(cfg["audio"]["velocidad"])
+        for e in guion.escenas:
+            e.duracion = 7.0 if cfg["audio"]["velocidad"] == "+0%" else 5.5
+        return guion
+
+    monkeypatch.setattr(locutor, "generar_audio", falso)
+    cfg = cargar_config(proyecto)
+    g = Guion("t", "short", escenas=[Escena(i, "x", "y") for i in range(1, 11)])
+    falso(g, None, cfg)                       # 10 escenas × 7 s = 70 s + pausas
+    locutor.controlar_duracion(g, proyecto, cfg)
+    assert llamadas[-1].startswith("+") and llamadas[-1] != "+0%"
+    assert locutor.duracion_total(g, 0.15) <= 58

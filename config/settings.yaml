@@ -8,29 +8,22 @@ idioma: es
 
 # ---------- Dirección de arte (reglas estrictas para TODAS las imágenes) ----------
 direccion_arte:
+  # Estilo común de las guías oficiales (Fact Stick / Money Lab / Wild Money)
   estilo: >-
-    minimalist 2D neon vector illustration on a pure black background, clean glowing outlines,
-    flat shapes, crisp professional look, high contrast, simple uncluttered composition
-  # Expresiones permitidas (Claude solo puede elegir de esta lista)
-  expresiones: [Talking, Thinking, Happy, Excited, Surprised, Confident, Worried, Sad, Angry, Explaining]
-  # Catálogo de poses de referencia (Claude puede proponer otras coherentes con la acción)
-  poses:
-    - standing confidently with arms crossed
-    - presenting with an open palm
-    - pointing at a glowing chart
-    - hand on chin, thinking
-    - walking forward with purpose
-    - sitting at a minimalist desk
-    - jumping with joy, arms raised
-    - shrugging with both hands up
-    - leaning forward, explaining
-    - holding a coin or money bag
+    simple minimalist 2D neon vector illustration on a pure black background, stick-figure characters
+    with solid black round heads, big white cartoon eyes and thin glowing neon outline bodies,
+    clean glowing lines, flat shapes, one clear idea, uncluttered, crisp professional look
+  # EXPRESSIONS oficiales (Claude solo puede elegir de esta lista)
+  expresiones: [Neutral, Happy, Talking, Surprised, Confused, Thinking, Concerned, Skeptical,
+                Excited, Angry, Serious, Smug]
+  # COMMON POSES oficiales (Claude solo puede elegir de esta lista)
+  poses: [Explaining, Pointing, Thinking, Presenting, Questioning, Arms crossed, Thumbs up, Celebrating]
   # Nunca deben aparecer en las imágenes (también se envían como prompt negativo)
   prohibido: [text, letters, words, titles, captions, numbers, digits, watermark, logo, signature,
-              3D render, photorealistic, photograph, realistic textures]
+              3D render, photorealistic, photograph, realistic textures, cluttered dashboards]
 
-# Universo (personajes oficiales) que se usa si no se indica otro con --universo
-universo_por_defecto: proyectos/money-lab
+# Canal que se usa si no se indica otro con --canal (fact-stick | money-lab | wild-money)
+universo_por_defecto: proyectos/fact-stick
 
 miniatura:
   titular: true   # true = añade el titular grande sobre el fondo (la imagen generada nunca lleva texto)
@@ -111,7 +104,11 @@ formatos:
   short:
     ancho: 1080
     alto: 1920
-    duracion_objetivo_min: 0.8 # ~50 s (< 60 s)
+    duracion_objetivo_min: 0.85      # ~125 palabras ≈ 50 s
+    duracion_min_s: 40               # el Short debe durar entre 40 y 60 s
+    duracion_max_s: 58               # margen bajo 60 s: si se pasa, la voz se acelera sola
+    escenas: [8, 12]                 # imágenes por Short (una idea clara cada 4-6 s)
+    pausa_entre_escenas: 0.15        # cortes más ágiles que en el video largo
     palabras_por_subtitulo: 3
     tam_fuente: 96
     margen_v: 520

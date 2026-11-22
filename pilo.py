@@ -3,13 +3,16 @@
 
 Conecta todo el flujo en un solo comando:
 
-    idea ─► Claude (guion) ─► lote de imágenes + miniatura (Pollinations/HF en paralelo)
-         ─► edge-tts (voz) ─► MoviePy + FFmpeg (video + subtítulos) ─► salida/ + OneDrive
+    [1] canal + idea ─► Claude (guion + prompts neón 2D con la guía oficial del canal)
+    [2] lote de imágenes (Pollinations/HF en paralelo)  ∥  voz edge-tts (40-60 s garantizados)
+    [3] MoviePy + FFmpeg (video 9:16 + subtítulos quemados)
+    [4] salida/ + OneDrive: .mp4, miniatura, .srt y publicacion.txt
 
 Uso:
-    python pilo.py                                   # modo guiado (pregunta todo)
-    python pilo.py "Por qué el cielo es azul"        # idea directa, formato largo + short
-    python pilo.py "idea" --formato short --universo proyectos/money-lab
+    python pilo.py                                   # modo guiado (canal, idea, formato)
+    python pilo.py "Cómo funciona el interés compuesto" --canal fact-stick
+    python pilo.py "Cómo gana dinero Costco" --canal wild-money
+    python pilo.py "Rentar o comprar casa" --canal money-lab --formato largo
     python pilo.py "idea" --sin-universo             # sin personajes oficiales
     python pilo.py --proyecto proyectos/mi-proyecto  # proyecto ya preparado
     python pilo.py --diagnostico                     # revisa el entorno y los secretos
@@ -46,6 +49,20 @@ def universo_por_defecto() -> Path | None:
     return ruta if (ruta / "proyecto.yaml").exists() else None
 
 
+def canales() -> list[Path]:
+    """Proyectos marcados como `canal: true` (universos oficiales con guía)."""
+    return sorted(p for p in (RAIZ / "proyectos").iterdir()
+                  if p.is_dir() and (p / "proyecto.yaml").exists() and Proyecto.cargar_meta(p)["canal"])
+
+
+def ruta_canal(nombre: str) -> Path:
+    ruta = RAIZ / "proyectos" / slug(nombre)
+    if not (ruta / "proyecto.yaml").exists():
+        disponibles = ", ".join(c.name for c in canales())
+        sys.exit(f"No existe el canal '{nombre}'. Disponibles: {disponibles}")
+    return ruta
+
+
 # --------------------------------------------------------------------------- diagnóstico
 def diagnostico() -> bool:
     """Muestra qué está listo. Devuelve False solo si falta algo imprescindible."""
@@ -67,13 +84,11 @@ def diagnostico() -> bool:
     fila(rclone and conf, "OneDrive (rclone)",
          "ok: se subirá automáticamente" if rclone and conf
          else "sin configurar: el video queda en salida/ (ver scripts/conectar_onedrive.sh)")
-    uni = universo_por_defecto()
-    if uni:
-        u = Proyecto.cargar_meta(uni)
-        nombres = ", ".join(u["personajes"]) or "sin personajes"
-        fila(not u["provisional"], "Universo por defecto",
-             f"{uni.name} ({nombres})" + ("  ← personajes PROVISIONALES: completa la guía oficial"
-                                          if u["provisional"] else ""))
+    for c in canales():
+        u = Proyecto.cargar_meta(c)
+        guia = "con guía oficial" if (c / "guia").exists() and any((c / "guia").iterdir()) else "SIN guía"
+        fila(not u["provisional"], f"Canal {c.name}",
+             f"{', '.join(u['personajes'])} · {guia}" + ("  ← PROVISIONAL" if u["provisional"] else ""))
     print()
     return ffmpeg
 
@@ -91,12 +106,18 @@ def crear_proyecto(idea: str, nombre: str | None, universo: Path | None) -> Path
     # Reutiliza el "universo" (personajes, estilo, referencias) de otro proyecto
     if (origen / "proyecto.yaml").exists():
         texto = (origen / "proyecto.yaml").read_text(encoding="utf-8")
-        lineas = [l if not l.startswith("nombre:") else f"nombre: {nombre}" for l in texto.splitlines()]
+        lineas = []
+        for l in texto.splitlines():
+            if l.startswith("nombre:"):
+                l = f"nombre: {nombre}"
+            elif l.startswith("canal:"):  # el video hereda el universo, pero no es un canal
+                l = f"canal: false\ncanal_origen: {origen.name}"
+            lineas.append(l)
         (destino / "proyecto.yaml").write_text("\n".join(lineas) + "\n", encoding="utf-8")
-    if (origen / "referencias").exists():
-        shutil.copytree(origen / "referencias", destino / "referencias")
-    else:
-        (destino / "referencias").mkdir()
+    for carpeta in ("referencias", "guia"):
+        if (origen / carpeta).exists():
+            shutil.copytree(origen / carpeta, destino / carpeta)
+    (destino / "referencias").mkdir(exist_ok=True)
     (destino / "idea.md").write_text(f"# {nombre}\n\n{idea.strip()}\n", encoding="utf-8")
     log.info("📁 Proyecto creado: %s", destino.relative_to(RAIZ))
     return destino
@@ -104,7 +125,21 @@ def crear_proyecto(idea: str, nombre: str | None, universo: Path | None) -> Path
 
 def preguntar() -> argparse.Namespace:
     print("🎬 PILO STUDIO: modo guiado\n")
-    print("Escribe la idea del video (puedes usar varias líneas; termina con una línea vacía):")
+    lista = canales()
+    defecto = universo_por_defecto()
+    universo = defecto
+    if lista:
+        print("¿Para qué canal es el video?")
+        for i, c in enumerate(lista, 1):
+            m = Proyecto.cargar_meta(c)
+            print(f"  {i}) {m['nombre']:<12} {m['nicho']}{'  (por defecto)' if c == defecto else ''}")
+        print("  0) Ninguno (sin personajes oficiales)")
+        op = input("Elige un número (Enter = por defecto): ").strip()
+        if op == "0":
+            universo = None
+        elif op.isdigit() and 0 < int(op) <= len(lista):
+            universo = lista[int(op) - 1]
+    print("\nEscribe la idea o el tema del video (varias líneas; termina con una línea vacía):")
     lineas = []
     while True:
         try:
@@ -117,23 +152,9 @@ def preguntar() -> argparse.Namespace:
     idea = "\n".join(lineas).strip()
     if not idea:
         sys.exit("No escribiste ninguna idea.")
-    formato = input("Formato [largo / short / ambos] (Enter = ambos): ").strip().lower() or "ambos"
+    formato = input("Formato [short / largo / ambos] (Enter = short 9:16 de 40-60 s): ").strip().lower() or "short"
     if formato not in {"largo", "short", "ambos"}:
-        formato = "ambos"
-    universos = sorted(p for p in (RAIZ / "proyectos").iterdir()
-                       if p.is_dir() and not p.name.startswith("_") and (p / "proyecto.yaml").exists())
-    defecto = universo_por_defecto()
-    universo = defecto
-    if universos:
-        print("¿Qué universo de personajes usar?")
-        print("  0) Ninguno (sin personajes oficiales)")
-        for i, u in enumerate(universos, 1):
-            print(f"  {i}) {u.name}{'  (por defecto)' if u == defecto else ''}")
-        op = input("Elige un número (Enter = por defecto): ").strip()
-        if op == "0":
-            universo = None
-        elif op.isdigit() and 0 < int(op) <= len(universos):
-            universo = universos[int(op) - 1]
+        formato = "short"
     return argparse.Namespace(idea=idea, formato=formato, universo=universo, nombre=None,
                               proyecto=None, hasta="exportar", regenerar_guion=False)
 
@@ -169,7 +190,9 @@ def resumen(resultados: dict[str, Path | None]) -> None:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Pilo Studio: de una idea a un video publicado.")
     ap.add_argument("idea", nargs="?", help="La idea central del video (entre comillas)")
-    ap.add_argument("--formato", choices=["largo", "short", "ambos"], default="ambos")
+    ap.add_argument("--formato", choices=["largo", "short", "ambos"], default="short",
+                    help="short = 9:16 de 40-60 s (por defecto)")
+    ap.add_argument("--canal", help="fact-stick | money-lab | wild-money (por defecto: universo_por_defecto)")
     ap.add_argument("--proyecto", type=Path, help="Usar un proyecto existente en lugar de una idea nueva")
     ap.add_argument("--universo", type=Path,
                     help="Proyecto del que copiar personajes, estilo y referencias (por defecto: universo_por_defecto)")
@@ -193,6 +216,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not args.idea and not args.proyecto:
         args = preguntar()
+    elif getattr(args, "canal", None):
+        args.universo = ruta_canal(args.canal)
     elif not args.proyecto and not args.universo and not getattr(args, "sin_universo", False):
         args.universo = universo_por_defecto()
 

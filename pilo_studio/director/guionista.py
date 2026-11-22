@@ -11,6 +11,8 @@ Proveedores, en el orden definido en settings.yaml:
 
 from __future__ import annotations
 
+import base64
+import io
 import os
 import re
 from typing import Literal
@@ -55,11 +57,13 @@ def modelo_guion(biblia: BibliaEstilo) -> type[BaseModel]:
     nombres = biblia.nombres_personajes
     TipoPersonaje = Literal[tuple(nombres)] if nombres else str  # type: ignore[valid-type]
     TipoExpresion = Literal[tuple(biblia.expresiones)] if biblia.expresiones else str  # type: ignore[valid-type]
+    TipoPose = Literal[tuple(biblia.poses)] if biblia.poses else str  # type: ignore[valid-type]
     Aparicion = create_model(
         "Aparicion",
         personaje=(TipoPersonaje, ...),
         expresion=(TipoExpresion, ...),
-        pose=(str, Field(..., description="Pose corporal concreta en inglés")),
+        pose=(TipoPose, ...),
+        accion=(str, Field(..., description="Qué hace o sostiene, en inglés, breve (p. ej. 'holding a piggy bank')")),
     )
     EscenaIA = create_model(
         "EscenaIA",
@@ -106,7 +110,7 @@ PROMPT_USUARIO = """<idea>
 <universo_visual>
 {estilo}
 </universo_visual>
-
+{guia}
 Formato: {formato_desc}
 - Longitud total de la narración: unas {palabras} palabras, en idioma "{idioma}".
 - Entre {escenas_min} y {escenas_max} escenas.
@@ -115,8 +119,9 @@ Formato: {formato_desc}
   composición, acción principal, objetos simbólicos, colores neón dominantes e iluminación (brillo neón sobre
   negro). No repitas aquí el aspecto de los personajes: se añade automáticamente desde su ficha oficial.
   Sin texto, sin números, sin nada entre comillas.
-- "reparto": un elemento por personaje oficial presente, con su "expresion" (de la lista permitida) y una "pose"
-  corporal concreta en inglés. Lista vacía si no aparece ningún personaje.
+- "reparto": un elemento por personaje oficial presente (1 o 2 por escena, como en la guía), con su
+  "expresion" y su "pose" de las listas oficiales, y una "accion" breve en inglés (qué hace o sostiene).
+  Lista vacía si no aparece ningún personaje.
 - "escenario": nombre de un escenario del universo visual, o null.
 - "descripcion" y "etiquetas": para publicar en YouTube (descripción de 2-3 frases, 8-15 etiquetas).
 - "miniatura_texto": 2 a 5 palabras MUY llamativas para la miniatura (en el idioma del video, sin emojis).
@@ -126,23 +131,44 @@ Formato: {formato_desc}
 - La última escena cierra con una llamada a la acción breve (suscribirse / seguir)."""
 
 
+def _imagen_guia(ruta) -> dict:
+    """Guía visual oficial como imagen para Claude (JPEG, máx. 1568 px de lado)."""
+    from PIL import Image
+
+    img = Image.open(ruta).convert("RGB")
+    img.thumbnail((1568, 1568))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=85)
+    return {"type": "image",
+            "source": {"type": "base64", "media_type": "image/jpeg",
+                       "data": base64.standard_b64encode(buf.getvalue()).decode()}}
+
+
 def guion_claude(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaEstilo) -> Guion | None:
     if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
         log.warning("Falta ANTHROPIC_API_KEY (secreto de Codespaces/Actions); se omite Claude.")
         return None
     cc = cfg["guion"]["claude"]
+    fmt = cfg["formatos"][formato]
     es_short = formato == "short"
+    escenas_min, escenas_max = fmt.get("escenas", [8, 12] if es_short else [14, 24])
     prompt = PROMPT_USUARIO.format(
         idea=proyecto.idea,
         estilo=biblia.resumen_para_guionista(),
-        formato_desc="YouTube Short / Reel vertical de menos de 60 segundos, ritmo rápido" if es_short
-        else "Video largo de YouTube (7-10 min) con introducción, desarrollo y cierre",
+        guia="\nLas imágenes adjuntas son la GUÍA VISUAL OFICIAL del canal: respeta exactamente sus personajes, "
+             "colores, expresiones, poses y la sección AVOID.\n" if proyecto.guias else "",
+        formato_desc=(f"YouTube Short / Reel vertical 9:16 de {fmt.get('duracion_min_s', 40)} a "
+                      f"{fmt.get('duracion_max_s', 58)} segundos: gancho potente en la primera frase, una idea "
+                      "clara por imagen, frases cortas, ritmo rápido y cierre con llamada a la acción")
+        if es_short else "Video largo de YouTube (7-10 min) con introducción, desarrollo y cierre",
         palabras=objetivo_palabras(cfg, formato),
         idioma=cfg.get("idioma", "es"),
-        escenas_min=4 if es_short else 14,
-        escenas_max=7 if es_short else 24,
+        escenas_min=escenas_min,
+        escenas_max=escenas_max,
         encuadre="vertical 9:16" if es_short else "16:9 widescreen",
     )
+    contenido: list[dict] = [_imagen_guia(g) for g in proyecto.guias[:3]]
+    contenido.append({"type": "text", "text": prompt})
     cliente = anthropic.Anthropic()
     try:
         # Streaming: un guion largo con prompts detallados puede ser extenso
@@ -154,7 +180,7 @@ def guion_claude(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaEsti
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",
             system=PROMPT_SISTEMA,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": contenido}],
             output_format=modelo_guion(biblia),
         ) as stream:
             r = stream.get_final_message()
@@ -227,7 +253,7 @@ def guion_plantilla(proyecto: Proyecto, formato: str, cfg: dict, biblia: BibliaE
         escenas.append({
             "narracion": b,
             "prompt_visual": f"symbolic neon scene illustrating: {b}",
-            "reparto": [{"personaje": n, "expresion": "Talking", "pose": "presenting with an open palm"}
+            "reparto": [{"personaje": n, "expresion": "Talking", "pose": "Explaining", "accion": ""}
                         for n in presentes],
         })
     return Guion.desde_dict({"titulo": titulo, "formato": formato, "descripcion": cuerpo[:300], "escenas": escenas,

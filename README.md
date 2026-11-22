@@ -1,10 +1,17 @@
 # 🎬 Pilo Studio
 
-Fábrica de videos **100 % en la nube**: largos (7–10 min, 16:9) y Shorts/Reels (9:16).
-Funciona desde un **iPad** con GitHub Codespaces o GitHub Actions. No hay que instalar nada.
+Fábrica de **Shorts/Reels verticales (9:16, de 40 a 60 s)** para tres canales, cada uno con su nicho y
+sus personajes oficiales. También puede hacer videos largos (7–10 min, 16:9).
+Funciona **100 % en la nube**, desde un **iPad**, con GitHub Codespaces o GitHub Actions. No hay que instalar nada.
+
+| Canal | Nicho | Personajes oficiales |
+|---|---|---|
+| `fact-stick` | Finanzas personales, ahorro, inversión | Blue, Green, Pink, Farmer, Rich |
+| `money-lab` | Bienes raíces, crédito, deudas, seguros | Cyan, Lime, Brown, Gray |
+| `wild-money` | Negocios, multimillonarios, lujo, cómo funcionan las empresas | Orange, Purple, White, Teal |
 
 ```
- tu idea ─► [1] DIRECCIÓN Y GUION   Claude escribe el guion y un prompt de imagen avanzado por escena
+ canal + idea ─► [1] DIRECCIÓN Y GUION   Claude escribe el guion y un prompt de imagen avanzado por escena
                                     (neón 2D sobre negro, personajes oficiales, expresión y pose)
           ─► [2] IMÁGENES ∥ VOZ     lote de imágenes en paralelo  +  voz con edge-tts, al mismo tiempo
           ─► [3] ENSAMBLAJE         MoviePy + FFmpeg, subtítulos sincronizados quemados en pantalla
@@ -62,14 +69,14 @@ En la terminal:
 python pilo.py
 ```
 
-El modo guiado te pide la idea, el formato y si quieres reutilizar los personajes de un proyecto existente.
-O en una sola línea:
+El modo guiado te pide el canal, la idea y el formato (Enter = Short).
+O en una sola línea (el formato por defecto es el Short 9:16 de 40–60 s):
 
 ```bash
-python pilo.py "Por qué los gatos ronronean" --formato ambos
-python pilo.py "Viaje a Marte" --formato short --universo proyectos/ejemplo-pilo-espacio
-python pilo.py "Qué es la inflación" --sin-universo   # sin personajes oficiales
-python pilo.py --proyecto proyectos/ejemplo-pilo-espacio --formato largo
+python pilo.py "Por qué el interés compuesto te hace rico" --canal fact-stick
+python pilo.py "Rentar o comprar casa: qué conviene" --canal money-lab
+python pilo.py "Cómo gana dinero Costco con sus membresías" --canal wild-money
+python pilo.py "Cómo funciona Amazon" --canal wild-money --formato largo   # video largo 16:9
 python pilo.py --diagnostico
 ```
 
@@ -83,7 +90,7 @@ Al terminar verás un resumen **LISTO PARA REVISAR Y SUBIR** con todos los archi
 Ideal para videos largos o para lanzar varios seguidos desde el móvil:
 
 1. Repositorio → pestaña **Actions** → **Producir video** → **Run workflow**.
-2. Escribe la idea (o la ruta de un proyecto), elige el formato y pulsa **Run**.
+2. Elige el **canal**, escribe la idea y pulsa **Run** (el formato por defecto es el Short).
 3. Al terminar (unos 10–30 min para un video largo), el video aparece en OneDrive (si configuraste
    `RCLONE_CONF_B64`) y siempre como **artefacto** descargable al final de la página de la ejecución (dura 14 días).
 
@@ -115,13 +122,14 @@ El script te guía paso a paso. Lo único raro en el iPad: tras iniciar sesión 
 Están en `config/settings.yaml → direccion_arte` y se aplican a cada imagen de la secuencia
 (`image_001.png`, `image_002.png`…):
 
-- **Estilo:** ilustración vectorial minimalista en neón 2D sobre fondo negro puro, limpia y profesional
-  (16:9 en el video largo, 9:16 en el Short).
+- **Estilo:** ilustración vectorial minimalista en neón 2D sobre fondo negro puro: personajes *stick figure*
+  con cabeza negra redonda, ojos blancos grandes y contorno neón. Limpia, profesional y con una idea clara
+  por imagen (9:16 en el Short, 16:9 en el video largo).
 - **Personajes:** Claude **solo puede usar** los personajes oficiales del universo. Es una lista cerrada:
   si intenta usar otro, la respuesta se rechaza. Cada personaje aparece con su rol, sus colores y su aspecto
   oficial, tomados de su ficha.
-- **Expresión y pose:** para cada personaje de cada escena, Claude elige una expresión de la lista permitida
-  (Talking, Thinking, Happy, Explaining…) según lo que se dice, y una pose corporal concreta.
+- **Expresión y pose:** para cada personaje de cada escena, Claude elige una expresión y una pose de las
+  listas oficiales según lo que se dice, más una acción breve (qué hace o sostiene).
 - **Prohibido:** texto, títulos, letras, números, marcas de agua, logos, renders 3D y fotos realistas.
   Se aplica de cuatro formas:
   1. está en las instrucciones de Claude;
@@ -135,34 +143,41 @@ El orden de cada prompt es siempre el mismo:
 paleta → encuadre → prohibiciones`. Si un prompt es demasiado largo, se recorta la descripción de la escena,
 nunca las reglas.
 
-### El universo `money-lab` (por defecto)
-`proyectos/money-lab/proyecto.yaml` define a **Cyan, Green, Pink, Farmer y Rich**, con su rol, sus colores
-y sus variantes por temática (`Money Lab` / `Wild Money`). Se usa automáticamente en cada idea nueva
-(lo controla `universo_por_defecto`).
+### Los tres canales
+Cada canal es una carpeta en `proyectos/` con:
 
-> ⚠️ **Antes del primer video:** las descripciones y colores de esos personajes son **provisionales**.
-> Cópialos de tu guía oficial en `proyectos/money-lab/proyecto.yaml` y cambia `provisional: true` a `false`.
-> Mientras no lo hagas, el diagnóstico y cada ejecución muestran un aviso.
-
-Ficha de un personaje:
-
-```yaml
-personajes:
-  Cyan:
-    rol: "narrator and guide who explains each financial concept"
-    colores: ["#00e5ff"]
-    descripcion: "friendly rounded character with glowing cyan neon outlines"
-    variantes:                       # opcional: aspecto según la temática activa
-      Money Lab: "… wearing a lab coat and safety goggles"
-      Wild Money: "… wearing an explorer hat and backpack"
+```
+proyecto.yaml          ← nicho, personajes oficiales (rol, personalidad, color, aspecto), escenarios, reglas propias
+guia/guia_oficial.jpg  ← la guía visual oficial ("Visual Production Guide")
 ```
 
-Para cambiar de temática, edita `estilo.tematica: Wild Money` en el proyecto.
-Para otro universo, crea otra carpeta con su `proyecto.yaml` y úsala con `--universo proyectos/otro`.
+- **Personajes:** su aspecto está transcrito de la guía. Por ejemplo, Purple lleva corona dorada, capa y traje;
+  Farmer, sombrero de paja, bigote, overol y horca. Cada imagen recibe la ficha completa del personaje.
+- **Expresiones y poses:** son las listas oficiales, comunes a los tres canales.
+  - Expresiones: Neutral, Happy, Talking, Surprised, Confused, Thinking, Concerned, Skeptical, Excited, Angry,
+    Serious, Smug.
+  - Poses: Explaining, Pointing, Thinking, Presenting, Questioning, Arms crossed, Thumbs up, Celebrating.
 
-**Subir las imágenes oficiales desde el iPad:** en el Codespace, clic derecho en `proyectos/money-lab/referencias/`
-→ **Upload…**. O en github.com: **Add file → Upload files** (necesario si vas a usar Actions). Llámalas como el
-personaje (`Cyan.png`). Sirven para extraer la paleta y como respaldo si la nube falla.
+  Claude solo puede elegir de estas listas; cualquier otro valor se rechaza.
+- **La guía se envía a Claude como imagen** con cada guion, para que respete personajes, colores, poses y la
+  sección *AVOID*.
+- **Reglas propias** de cada canal en `reglas_extra`. Por ejemplo, en Fact Stick: "combinación equilibrada de
+  colores, no solo Blue".
+- Canal por defecto: `universo_por_defecto` en `config/settings.yaml`. Se cambia por video con `--canal`.
+
+Para corregir un personaje, edita su ficha en `proyecto.yaml`. Si añades imágenes oficiales sueltas de cada
+personaje en `referencias/` (por ejemplo `Purple.png`), se usan como respaldo cuando la nube falla.
+Las guías no se usan como respaldo porque llevan texto.
+
+> Los generadores gratuitos (Pollinations, Hugging Face) no copian una imagen de referencia: dibujan a partir
+> de la descripción. Por eso las fichas son muy detalladas y la semilla es fija. Aun así, puede haber
+> pequeñas variaciones entre imágenes.
+
+### Duración de los Shorts (40–60 s)
+- Claude escribe unas 125 palabras repartidas en **8–12 escenas** (una idea clara cada 4–6 s).
+- Tras generar la voz, se mide la duración. Si pasa de 58 s, la voz se vuelve a generar algo más rápida
+  (hasta +25 %). Si queda por debajo de 40 s, aparece un aviso.
+- Se ajusta en `formatos.short` de `config/settings.yaml`.
 
 **Miniatura:** el fondo se genera con el mismo estilo neón y sin texto. Después se le añade el titular grande,
 como en una miniatura de YouTube. Para no añadirlo, pon `miniatura.titular: false`.

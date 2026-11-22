@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from pilo_studio.assembly.montador import montar
-from pilo_studio.audio.locutor import generar_audio
+from pilo_studio.audio.locutor import controlar_duracion, generar_audio
 from pilo_studio.config import cargar_config
 from pilo_studio.director.guionista import escribir_guion
 from pilo_studio.models import Guion
@@ -62,6 +62,7 @@ def producir(ruta_proyecto: Path | str, formato: str = "largo", hasta: str = "ex
     with ThreadPoolExecutor(max_workers=1, thread_name_prefix="imagenes") as ex:
         tarea_imagenes = ex.submit(generar_imagenes, guion, build, cfg, biblia)
         generar_audio(guion, build, cfg)          # asyncio en el hilo principal
+        controlar_duracion(guion, build, cfg)     # Shorts: 40-60 s garantizados
         tarea_imagenes.result()                   # propaga cualquier error del lote
     mcfg = cfg.get("miniatura", {}) or {}
     texto = (guion.miniatura_texto or guion.titulo) if mcfg.get("titular", True) else ""
