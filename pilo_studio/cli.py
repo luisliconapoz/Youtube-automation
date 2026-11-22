@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -104,6 +105,9 @@ def _providers(brand_id: str, test_images: bool) -> dict:
     if test_images:
         from .providers.image_placeholder import PlaceholderImages
         out["image"] = PlaceholderImages(brand_id)
+    elif os.environ.get("PILO_IMAGES", "") == "gemini":
+        from .providers.image_gemini import GeminiImages
+        out["image"] = GeminiImages()
     return out
 
 

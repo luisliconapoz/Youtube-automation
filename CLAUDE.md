@@ -34,6 +34,8 @@ Largos 7–15 min (prom. 8–10), ~1 imagen cada 5 s (100–300 imágenes). Shor
 - Entorno de red 'Youtube-automation' permite elevenlabsusercontent.com.
 - Las imágenes IA a veces copian el marco de la hoja de referencia: recortar o poner margen negro.
 
+- Gemini: `providers/image_gemini.py` listo; activar con PILO_IMAGES=gemini + clave (secreto de red del entorno para generativelanguage.googleapis.com, header x-goog-api-key). Usuario rechazó el formulario la 1.ª vez: no volver a pedir salvo que lo pida.
+
 ## Falta
 Imágenes reales (proveedor), clave Claude, música/SFX con licencia, Google Drive (rclone), Notion.
 
