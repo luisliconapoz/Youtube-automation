@@ -5,6 +5,7 @@ Estructura en disco:
         idea.md            <- la idea temática central (lo único obligatorio)
         proyecto.yaml      <- estilo, personajes, escenarios y overrides de config
         referencias/       <- imágenes de referencia (personajes, escenarios, paleta)
+        guia/              <- guía visual oficial del canal (Claude la ve al escribir los prompts)
         guion.yaml         <- (opcional) guion escrito a mano
         build/<formato>/   <- artefactos intermedios (caché reanudable)
 """
@@ -28,6 +29,7 @@ class Personaje:
     descripcion: str
     rol: str = ""
     colores: list[str] = field(default_factory=list)
+    personalidad: str = ""
     variantes: dict[str, str] = field(default_factory=dict)  # temática -> descripción alternativa
 
     def descripcion_para(self, tematica: str | None) -> str:
@@ -39,7 +41,8 @@ class Personaje:
             return cls(nombre, datos)
         datos = datos or {}
         return cls(nombre, datos.get("descripcion", ""), datos.get("rol", ""),
-                   list(datos.get("colores", []) or []), dict(datos.get("variantes", {}) or {}))
+                   list(datos.get("colores", []) or []), datos.get("personalidad", ""),
+                   dict(datos.get("variantes", {}) or {}))
 
 
 @dataclass
@@ -59,6 +62,9 @@ class Proyecto:
     estilo: Estilo
     referencias: list[Path]
     provisional: bool = False   # personajes aún sin la guía oficial
+    nicho: str = ""                                          # temática del canal
+    reglas_extra: list[str] = field(default_factory=list)   # reglas propias del canal
+    guias: list[Path] = field(default_factory=list)         # guías visuales oficiales (se envían a Claude)
 
     @property
     def slug(self) -> str:
@@ -97,6 +103,10 @@ class Proyecto:
             estilo=estilo,
             referencias=refs,
             provisional=bool(meta.get("provisional", False)),
+            nicho=meta.get("nicho", "") or "",
+            reglas_extra=list(meta.get("reglas_extra", []) or []),
+            guias=sorted(p for p in (ruta / "guia").glob("*") if p.suffix.lower() in EXT_IMAGEN)
+            if (ruta / "guia").exists() else [],
         )
 
     @staticmethod
@@ -105,4 +115,6 @@ class Proyecto:
         meta = cargar_yaml(Path(ruta) / "proyecto.yaml")
         return {"nombre": meta.get("nombre", Path(ruta).name),
                 "personajes": list(((meta.get("estilo") or {}).get("personajes") or {}).keys()),
-                "provisional": bool(meta.get("provisional", False))}
+                "provisional": bool(meta.get("provisional", False)),
+                "nicho": meta.get("nicho", "") or "",
+                "canal": bool(meta.get("canal", False))}

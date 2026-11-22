@@ -50,7 +50,7 @@ def montar(guion: Guion, build: Path, cfg: dict) -> Path:
     fmt = cfg["formatos"][guion.formato]
     vcfg = cfg["video"]
     ancho, alto, fps = fmt["ancho"], fmt["alto"], vcfg.get("fps", 30)
-    pausa = float(vcfg.get("pausa_entre_escenas", 0.35))
+    pausa = float(fmt.get("pausa_entre_escenas", vcfg.get("pausa_entre_escenas", 0.35)))
 
     # ---- 1) Composición con MoviePy
     tomas, pistas, t = [], [], 0.0

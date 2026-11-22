@@ -1,54 +1,40 @@
 # ════════════════════════════════════════════════════════════════════
-#  UNIVERSO OFICIAL: personajes de Money Lab / Wild Money
-#
-#  ⚠️  Las descripciones, roles y colores de abajo son PROVISIONALES:
-#      cópialos de tu guía oficial de personajes y después cambia
-#      `provisional: true` a `false` para que desaparezca el aviso.
-#      Pon también sus imágenes oficiales en referencias/ con el nombre
-#      del personaje (Cyan.png, Green.png, Farmer.png…).
+#  CANAL: MONEY LAB — universo oficial (guía: guia/guia_oficial.jpg)
 # ════════════════════════════════════════════════════════════════════
 nombre: Money Lab
-provisional: true
+canal: true
+nicho: "real estate, credit, debt, insurance and personal finance"
 
 estilo:
-  # Temática activa: elige qué variante de cada personaje se dibuja
-  # (debe coincidir con una clave de `variantes`). Opciones: Money Lab | Wild Money
-  tematica: Money Lab
-
-  # Vacío = usa direccion_arte.estilo de config/settings.yaml (neón 2D sobre negro)
   descripcion: ""
-
-  paleta: ["#000000", "#00e5ff", "#39ff14", "#ff2bd6", "#ffd60a"]
-
+  paleta: ["#00f0ff", "#33ff00", "#e07b1a", "#c8c8c8"]
   personajes:
     Cyan:
-      rol: "narrator and guide who explains each financial concept"
-      colores: ["#00e5ff"]
-      descripcion: "friendly rounded character drawn with glowing cyan neon outlines, big expressive eyes, simple limbs"
-      variantes:
-        Money Lab: "friendly rounded character with glowing cyan neon outlines wearing a lab coat and safety goggles"
-        Wild Money: "friendly rounded character with glowing cyan neon outlines wearing an explorer hat and backpack"
-    Green:
-      rol: "the disciplined saver and investor who makes smart decisions"
-      colores: ["#39ff14"]
-      descripcion: "calm confident character drawn with glowing green neon outlines, neat posture"
-    Pink:
-      rol: "the impulsive spender who learns from mistakes"
-      colores: ["#ff2bd6"]
-      descripcion: "energetic character drawn with glowing pink neon outlines, shopping bags, playful look"
-    Farmer:
-      rol: "the patient grower: compound interest and long-term investing"
-      colores: ["#ffb703", "#39ff14"]
-      descripcion: "humble farmer drawn with warm orange neon outlines, straw hat, tending glowing coin plants"
-    Rich:
-      rol: "the wealthy mentor who shows how money works for you"
-      colores: ["#ffd60a"]
-      descripcion: "elegant character drawn with golden yellow neon outlines, suit and top hat, composed smile"
-
+      rol: "narrator and main character"
+      personalidad: "friendly, curious, practical"
+      colores: ["#00f0ff"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, a small tuft of hair, a small house icon on the chest and a glowing cyan neon outline body"
+    Lime:
+      rol: "credit, loans, debt and insurance expert"
+      personalidad: "calm, strict, logical"
+      colores: ["#33ff00"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, a baseball cap, holding a calculator, glowing lime green neon outline"
+    Brown:
+      rol: "real estate agent: buying, renting and mortgages"
+      personalidad: "energetic, persuasive, friendly"
+      colores: ["#e07b1a"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, holding a house key and a small house, glowing brown-orange neon outline"
+    Gray:
+      rol: "everyday person who is buying or renting"
+      personalidad: "worried but hopeful, practical"
+      colores: ["#c8c8c8"]
+      descripcion: "stick figure with a black round head, big white cartoon eyes, messy hair, a collared shirt with a pocket, glowing light gray neon outline"
   escenarios:
-    laboratorio: "minimalist neon laboratory with glowing flasks and coin-shaped bubbles on black"
-    selva: "wild jungle of glowing neon leaves and vines on black, with coins hidden among plants"
-    ciudad: "minimalist neon city skyline outline on black"
-    granja: "neon farm field with rows of glowing coin plants on black"
+    casa: "simple neon outline of a house with a small garden"
+    oficina: "simple neon desk with a laptop and a clipboard checklist"
+    banco: "simple neon outline of a bank building"
+
+reglas_extra:
+  - "Cyan guía la historia; Lime aparece en temas de crédito, préstamos, deudas y seguros; Brown en compra, renta e hipotecas; Gray representa a la persona común con sus dudas."
 
 config: {}

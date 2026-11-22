@@ -20,14 +20,25 @@ from pilo_studio.proyecto import Proyecto
 from pilo_studio.utils import semilla
 
 # Valores por defecto: se pueden ajustar en settings.yaml -> direccion_arte
-ESTILO_NEON = ("minimalist 2D neon vector illustration on a pure black background, clean glowing outlines, "
-               "flat shapes, crisp professional look, high contrast, simple uncluttered composition")
-EXPRESIONES = ["Talking", "Thinking", "Happy", "Excited", "Surprised", "Confident", "Worried", "Sad", "Angry",
-               "Explaining"]
-POSES = ["standing confidently with arms crossed", "presenting with an open palm", "pointing at a glowing chart",
-         "hand on chin, thinking", "walking forward with purpose", "sitting at a minimalist desk",
-         "jumping with joy, arms raised", "shrugging with both hands up", "leaning forward, explaining",
-         "holding a coin or money bag", "back to back with another character"]
+ESTILO_NEON = ("simple minimalist 2D neon vector illustration on a pure black background, stick-figure characters "
+               "with solid black round heads, big white cartoon eyes and thin glowing neon outline bodies, "
+               "clean glowing lines, flat shapes, one clear idea, uncluttered, crisp professional look")
+# Listas oficiales de las guías (EXPRESSIONS / COMMON POSES)
+EXPRESIONES = ["Neutral", "Happy", "Talking", "Surprised", "Confused", "Thinking", "Concerned", "Skeptical",
+               "Excited", "Angry", "Serious", "Smug"]
+POSES = ["Explaining", "Pointing", "Thinking", "Presenting", "Questioning", "Arms crossed", "Thumbs up",
+         "Celebrating"]
+# Cómo se dibuja cada pose oficial
+POSES_DESCRIPCION = {
+    "Explaining": "explaining with one open hand extended to the side",
+    "Pointing": "pointing with an outstretched arm",
+    "Thinking": "hand on chin, thinking",
+    "Presenting": "presenting with both arms open",
+    "Questioning": "shrugging with a question gesture",
+    "Arms crossed": "standing with arms crossed",
+    "Thumbs up": "giving a thumbs up",
+    "Celebrating": "celebrating with both arms raised",
+}
 PROHIBIDO = ["text", "letters", "words", "titles", "captions", "numbers", "digits", "watermark", "logo",
              "signature", "3D render", "photorealistic", "photograph", "realistic textures"]
 
@@ -35,9 +46,11 @@ PROHIBIDO = ["text", "letters", "words", "titles", "captions", "numbers", "digit
 _NOMBRES_COLOR = {
     "black": (0, 0, 0), "white": (255, 255, 255), "neon cyan": (0, 229, 255), "electric blue": (30, 90, 255),
     "navy blue": (11, 19, 43), "steel blue": (58, 80, 107), "teal": (91, 192, 190), "neon green": (57, 255, 20),
-    "emerald green": (0, 168, 107), "hot pink": (255, 43, 214), "magenta": (255, 0, 255), "purple": (128, 0, 255),
+    "emerald green": (0, 168, 107), "magenta": (255, 0, 255), "purple": (128, 0, 255),
     "violet": (160, 90, 255), "red": (255, 30, 60), "neon orange": (251, 133, 0), "amber": (255, 183, 3),
-    "golden yellow": (255, 214, 10), "lime": (190, 255, 0), "gray": (128, 128, 128),
+    "golden yellow": (255, 214, 10), "lime green": (51, 255, 0), "gray": (128, 128, 128),
+    "light gray": (200, 200, 200), "brown-orange": (224, 123, 26), "neon yellow": (255, 229, 0),
+    "bright cyan": (0, 240, 240), "neon purple": (208, 64, 255), "hot pink": (255, 43, 214),
 }
 
 
@@ -116,7 +129,10 @@ class BibliaEstilo:
     def resumen_para_guionista(self) -> str:
         """Universo visual que se entrega a Claude para que respete personajes y reglas."""
         t = self.estilo.tematica
-        lineas = [f"Estilo obligatorio de TODAS las imágenes: {self.descripcion}"]
+        lineas = []
+        if self.proyecto.nicho:
+            lineas.append(f"Nicho del canal '{self.proyecto.nombre}': {self.proyecto.nicho}")
+        lineas.append(f"Estilo obligatorio de TODAS las imágenes: {self.descripcion}")
         if t:
             lineas.append(f"Temática activa: {t}")
         if self.paleta:
@@ -125,13 +141,16 @@ class BibliaEstilo:
             lineas.append("Personajes oficiales (usa SOLO estos, con su rol y colores):")
             for p in self.estilo.personajes.values():
                 extra = f" | rol: {p.rol}" if p.rol else ""
+                extra += f" | personalidad: {p.personalidad}" if p.personalidad else ""
                 extra += f" | colores: {', '.join(p.colores)}" if p.colores else ""
                 lineas.append(f"  - {p.nombre}{extra} | aspecto: {p.descripcion_para(t)}")
         for nombre, desc in self.estilo.escenarios.items():
             lineas.append(f"Escenario '{nombre}': {desc}")
-        lineas.append(f"Expresiones permitidas: {', '.join(self.expresiones)}")
-        lineas.append(f"Ejemplos de poses: {'; '.join(self.poses)}")
+        lineas.append(f"Expresiones oficiales: {', '.join(self.expresiones)}")
+        lineas.append(f"Poses oficiales: {', '.join(self.poses)}")
         lineas.append(f"PROHIBIDO en las imágenes: {', '.join(self.prohibido)}")
+        for regla in self.proyecto.reglas_extra:
+            lineas.append(f"Regla del canal: {regla}")
         return "\n".join(lineas)
 
     # ------------------------------------------------------------- para el generador
@@ -143,7 +162,7 @@ class BibliaEstilo:
             return escena.reparto
         # Compatibilidad: escenas sin reparto explícito (guion manual / plantilla)
         texto = f"{escena.prompt_visual} {escena.narracion}".lower()
-        return [{"personaje": n, "expresion": "Talking", "pose": self.poses[1]}
+        return [{"personaje": n, "expresion": "Talking", "pose": "Explaining"}
                 for n in self.estilo.personajes if n in escena.personajes or n.lower() in texto]
 
     def prompt_final(self, escena: Escena, encuadre: str = "16:9 widescreen", max_chars: int = 1400) -> str:
@@ -172,7 +191,9 @@ class BibliaEstilo:
             if r.get("expresion"):
                 ficha += f", {r['expresion'].lower()} expression"
             if r.get("pose"):
-                ficha += f", pose: {limpiar_prompt(r['pose'])}"
+                ficha += f", pose: {POSES_DESCRIPCION.get(r['pose'], limpiar_prompt(r['pose']))}"
+            if r.get("accion"):
+                ficha += f", {limpiar_prompt(r['accion'])}"
             partes.append(ficha.replace("(:", ":").replace("()", ""))
         if escena.escenario and escena.escenario in self.estilo.escenarios:
             partes.append(self.estilo.escenarios[escena.escenario])
