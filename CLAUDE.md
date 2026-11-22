@@ -28,6 +28,12 @@ Largos 7–15 min (prom. 8–10), ~1 imagen cada 5 s (100–300 imágenes). Shor
 - Imágenes de PRUEBA: `providers/image_placeholder.py` (`--test-images`, NO publicar).
 - Comandos: `pilo new --plan X --test-images`, `pilo batch --count N --test-images`.
 
+## Piloto con IA real (OK)
+- Imágenes: ElevenLabs gemini-3.1-flash-image con referencias por URL raw de GitHub (repo público). ~609-812 créditos/imagen; plan gratis = 3 imágenes/día. Usuario quiere imágenes con Gemini/otra IA, ElevenLabs solo audio.
+- Voz ElevenLabs: voz Daniel (onwK4e9ZLuTAKqWW03F9), eleven_flash_v2_5, ~30 créditos/frase; gratis 10k/mes.
+- Entorno de red 'Youtube-automation' permite elevenlabsusercontent.com.
+- Las imágenes IA a veces copian el marco de la hoja de referencia: recortar o poner margen negro.
+
 ## Falta
 Imágenes reales (proveedor), clave Claude, música/SFX con licencia, Google Drive (rclone), Notion.
 
