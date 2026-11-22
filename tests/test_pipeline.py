@@ -319,3 +319,19 @@ def test_short_demasiado_largo_se_acelera(proyecto, monkeypatch):
     locutor.controlar_duracion(g, proyecto, cfg)
     assert llamadas[-1].startswith("+") and llamadas[-1] != "+0%"
     assert locutor.duracion_total(g, 0.15) <= 58
+
+
+def test_titulo_por_escena_y_carpeta_por_codigo(tmp_path):
+    from pilo_studio.assembly.montador import _titulo_escena
+    from pilo_studio.storage import exportador
+
+    t = _titulo_escena(Escena(2, "x", "y", titulo="El depósito"), 1.0, 1080, 1920, {})
+    assert t is not None and t.size[0] <= 1080
+    assert _titulo_escena(Escena(3, "x", "y"), 1.0, 1080, 1920, {}) is None
+
+    video = tmp_path / "v.mp4"
+    video.write_bytes(b"x" * 10)
+    g = Guion("t", "short", codigo="FS-001", escenas=[])
+    out = exportador.exportar(video, g, tmp_path, {"salida": {"carpeta": str(tmp_path / "salida"),
+                                                              "nube": {"activada": False}}})
+    assert out == tmp_path / "salida" / "FS-001" / "FS-001.mp4" and out.exists()

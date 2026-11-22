@@ -1,0 +1,44 @@
+# ════════════════════════════════════════════════════════════════════
+#  CANAL: WILD MONEY — universo oficial (guía: guia/guia_oficial.jpg)
+# ════════════════════════════════════════════════════════════════════
+nombre: WM-001 Wild Money — Costco
+canal: false
+canal_origen: wild-money
+nicho: "business, billionaires, luxury and how companies work"
+
+estilo:
+  descripcion: ""
+  paleta: ["#ff8a00", "#d040ff", "#ffffff", "#00f0f0"]
+  personajes:
+    Orange:
+      rol: "narrator and main character; explains concepts and guides the story for most of the video"
+      personalidad: "curious, sharp, loves breaking down how companies work"
+      colores: ["#ff8a00"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes and a glowing orange neon outline body"
+    Purple:
+      rol: "billionaire and CEO perspective; shows how powerful people think and decide"
+      personalidad: "confident, ambitious, charming but ruthless"
+      colores: ["#d040ff"]
+      descripcion: "stick figure with a solid black round head, smug narrowed white eyes, a golden crown, a cape and a suit, glowing purple neon outline"
+    White:
+      rol: "analyst who breaks down business models, numbers and strategy"
+      personalidad: "smart, precise, calm"
+      colores: ["#ffffff"]
+      descripcion: "stick figure with a black round head, round glasses, holding a tablet with a simple rising chart, glowing white neon outline"
+    Teal:
+      rol: "everyday worker and customer; asks the questions an average person would ask"
+      personalidad: "practical, tired, relatable, a bit skeptical"
+      colores: ["#00f0f0"]
+      descripcion: "stick figure with a solid black round head, tired white eyes, a baseball cap and an ID badge on a lanyard, glowing teal neon outline"
+  escenarios:
+    fabrica: "simple neon outline of a factory with smoke stacks"
+    rascacielos: "simple neon city skyline with tall towers"
+    oficina_ceo: "simple neon executive office with a big chair"
+    tienda: "simple neon shop with a shopping cart"
+
+reglas_extra:
+  - "Orange narra y aparece en la mayoría de las escenas; Purple muestra la mentalidad del multimillonario; White explica el modelo de negocio; Teal hace las preguntas del público."
+
+config:
+  audio:
+    voz: es-ES-AlvaroNeural

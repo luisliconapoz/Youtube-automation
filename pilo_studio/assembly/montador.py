@@ -11,7 +11,7 @@ import math
 from pathlib import Path
 
 import numpy as np
-from moviepy import AudioFileClip, CompositeAudioClip, VideoClip, concatenate_videoclips
+from moviepy import AudioFileClip, CompositeAudioClip, CompositeVideoClip, TextClip, VideoClip, concatenate_videoclips
 from PIL import Image
 
 from pilo_studio.assembly.subtitulos import construir_lineas, escribir_ass, escribir_srt
@@ -46,6 +46,22 @@ def _toma(escena: Escena, duracion: float, ancho: int, alto: int, vcfg: dict) ->
     return VideoClip(cuadro, duration=duracion)
 
 
+def _titulo_escena(escena: Escena, duracion: float, ancho: int, alto: int, vcfg: dict) -> TextClip | None:
+    """Título fijo en la parte superior: "Imagen N — Título" (formato de los guiones de Notion)."""
+    if not escena.titulo:
+        return None
+    tc = vcfg.get("titulos", {}) or {}
+    fuente = next((f for f in (tc.get("fuente"), "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+                   if f and Path(f).exists()), None)
+    txt = TextClip(
+        font=fuente, text=f"Imagen {escena.id} — {escena.titulo}",
+        font_size=int(tc.get("tam", ancho * 0.06 if alto > ancho else ancho * 0.045)), color=tc.get("color", "white"),
+        stroke_color="black", stroke_width=int(tc.get("borde", 6)),
+        size=(ancho - 2 * int(ancho * 0.06), None), method="caption", text_align="center",
+    )
+    return txt.with_duration(duracion).with_position(("center", int(alto * tc.get("y", 0.12))))
+
+
 def montar(guion: Guion, build: Path, cfg: dict) -> Path:
     fmt = cfg["formatos"][guion.formato]
     vcfg = cfg["video"]
@@ -56,7 +72,9 @@ def montar(guion: Guion, build: Path, cfg: dict) -> Path:
     tomas, pistas, t = [], [], 0.0
     for e in guion.escenas:
         dur = (e.duracion or 0) + pausa
-        tomas.append(_toma(e, dur, ancho, alto, vcfg))
+        toma = _toma(e, dur, ancho, alto, vcfg)
+        titulo = _titulo_escena(e, dur, ancho, alto, vcfg)
+        tomas.append(CompositeVideoClip([toma, titulo]) if titulo is not None else toma)
         pistas.append(AudioFileClip(e.audio).with_start(t))
         t += dur
     video = concatenate_videoclips(tomas, method="chain")

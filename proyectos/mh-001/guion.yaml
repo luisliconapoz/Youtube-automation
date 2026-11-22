@@ -1,0 +1,63 @@
+titulo: Why a $300,000 House Can Cost Much More Than $300,000
+formato: short
+codigo: MH-001
+descripcion: 'Los costos reales de una casa de 300.000 dólares: intereses, impuestos, seguro, mantenimiento y cierre.'
+etiquetas: []
+miniatura_texto: ''
+miniatura_prompt: ''
+escenas:
+- titulo: Hook
+  narracion: Crees que compraste una casa de $300,000. Pero en 30 años, pagaste mucho más. Mucho más.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, gray stick figure with round head and white eyes, surprised expression, standing in front of a house outline, simple clean
+    scene, no text, neon glow effect
+  personajes:
+  - Gray
+  escenario: null
+  reparto: []
+- titulo: Los intereses
+  narracion: Con una hipoteca a 30 años al 7%, pagas $240,000 solo en intereses. La casa ya va en $540,000.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure pointing at a large upward arrow with dollar signs multiplying, concerned expression, simple clean scene,
+    no text, cyan neon glow
+  personajes:
+  - Cyan
+  escenario: null
+  reparto: []
+- titulo: Los impuestos
+  narracion: 'Más impuestos de propiedad. En muchos lugares, $3,000 al año. En 30 años: $90,000 más.'
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, gray stick figure handing coins to a government building outline, sad expression, simple clean scene, no text, neon glow
+  personajes:
+  - Gray
+  escenario: null
+  reparto: []
+- titulo: El seguro
+  narracion: 'Seguro de propietario: $1,500 al año. En 30 años: otros $45,000.'
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, lime stick figure presenting a shield symbol next to a house, explaining expression, simple clean scene, no text, lime neon
+    glow
+  personajes:
+  - Lime
+  escenario: null
+  reparto: []
+- titulo: El mantenimiento
+  narracion: 'Expertos dicen: reserva 1% del valor cada año para mantenimiento. Eso es $3,000 anuales. En 30 años: $90,000.'
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, brown stick figure with tools fixing a house outline, thinking expression, simple clean scene, no text, brown and orange neon
+    glow
+  personajes:
+  - Brown
+  escenario: null
+  reparto: []
+- titulo: Los costos de cierre
+  narracion: 'Y al comprar, los costos de cierre: inspección, título, notaría. Entre $6,000 y $12,000 extra desde el día 1.'
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, gray stick figure signing a document with dollar bills flying away, concerned expression, simple clean scene, no text, neon
+    glow
+  personajes:
+  - Gray
+  escenario: null
+  reparto: []
+- titulo: Cierre
+  narracion: Una casa de $300,000 puede costarte $750,000 o más en 30 años. ¿Sigues seguro de que es una inversión?
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure in serious pose with arms crossed, large glowing dollar sign in background, serious expression, simple clean
+    scene, no text, cyan neon glow
+  personajes:
+  - Cyan
+  escenario: null
+  reparto: []

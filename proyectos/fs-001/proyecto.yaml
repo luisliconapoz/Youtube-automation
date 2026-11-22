@@ -1,0 +1,50 @@
+# ════════════════════════════════════════════════════════════════════
+#  CANAL: FACT STICK — universo oficial (guía: guia/guia_oficial.jpg)
+# ════════════════════════════════════════════════════════════════════
+nombre: FS-001 Fact Stick — Bancos
+canal: false
+canal_origen: fact-stick
+nicho: "personal finance, money facts, saving, investing and wealth explained simply"
+
+estilo:
+  descripcion: ""   # vacío = direccion_arte.estilo de config/settings.yaml (neón 2D stick figures)
+  paleta: ["#00f0ff", "#00ff3c", "#ff2bd6", "#ffe500", "#ff2020"]
+  personajes:
+    Blue:
+      rol: "main narrator who explains concepts and guides the story"
+      personalidad: "curious, thoughtful, clear"
+      colores: ["#00f0ff"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, a small tuft of hair on top and a glowing cyan-blue neon outline body"
+    Green:
+      rol: "investments and growth; explains strategies and long-term thinking"
+      personalidad: "smart, analytical, calm"
+      colores: ["#00ff3c"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes and a glowing bright green neon outline body"
+    Pink:
+      rol: "brings relatable examples and new angles"
+      personalidad: "energetic, friendly, enthusiastic"
+      colores: ["#ff2bd6"]
+      descripcion: "female stick figure with a solid black round head, big white cartoon eyes with eyelashes, a ponytail and a glowing hot pink neon outline body"
+    Farmer:
+      rol: "everyday person with a real-world view; shows real situations and common questions"
+      personalidad: "practical, down-to-earth, simple"
+      colores: ["#ffe500"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, a white mustache, a wide straw hat and overalls, holding a pitchfork, glowing yellow neon outline"
+    Rich:
+      rol: "wealthy elite perspective; shows a different, long-term view"
+      personalidad: "confident, strategic, sometimes smug"
+      colores: ["#ff2020"]
+      descripcion: "stick figure with a solid black round head, smug half-closed white eyes, a tall top hat, a monocle, a suit with a tie, glowing red neon outline"
+  escenarios:
+    banco: "simple neon outline of a classic bank building with columns"
+    tienda: "simple neon supermarket shelves with a shopping cart"
+    granja: "simple neon barn and crop field"
+    oficina: "simple neon desk with a laptop showing a rising bar chart"
+
+# Reglas propias de este canal (se añaden a las reglas generales)
+reglas_extra:
+  - "Usa una combinación equilibrada de personajes y colores: no solo Blue."
+
+config:
+  audio:
+    voz: es-ES-AlvaroNeural

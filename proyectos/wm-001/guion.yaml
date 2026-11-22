@@ -1,0 +1,62 @@
+titulo: How Costco Makes Billions With Surprisingly Thin Margins
+formato: short
+codigo: WM-001
+descripcion: 'Cómo Costco gana miles de millones con márgenes casi nulos: la membresía, el volumen y la lealtad.'
+etiquetas: []
+miniatura_texto: ''
+miniatura_prompt: ''
+escenas:
+- titulo: Hook
+  narracion: Costco vende casi sin ganancia. Y aun así es uno de los negocios más rentables del mundo. ¿Cómo?
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, orange stick figure with round head and white eyes, surprised expression, standing in front of a large warehouse store outline,
+    simple clean scene, no text, neon glow effect
+  personajes:
+  - Orange
+  escenario: null
+  reparto: []
+- titulo: El margen casi nulo
+  narracion: Sus productos los vende con apenas 11% de margen. Muchas tiendas tienen 30%, 40%, hasta 50%. Costco, 11.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, orange stick figure pointing at a small glowing percentage symbol, explaining expression, simple clean scene, no text, orange
+    neon glow
+  personajes:
+  - Orange
+  escenario: null
+  reparto: []
+- titulo: La membresía
+  narracion: 'Ahí está el secreto: la membresía anual. Millones de personas pagan solo por entrar a comprar.'
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, teal stick figure handing a membership card to orange stick figure, happy expressions, simple clean scene, no text, neon glow
+  personajes:
+  - Teal
+  - Orange
+  escenario: null
+  reparto: []
+- titulo: El volumen
+  narracion: Con millones de miembros comprando en cantidad, Costco tiene poder brutal con los proveedores. Precios bajos garantizados.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, orange stick figure with arms wide open, multiple arrows pointing toward boxes and suppliers, presenting pose, simple clean
+    scene, no text, neon glow
+  personajes:
+  - Orange
+  escenario: null
+  reparto: []
+- titulo: La lealtad
+  narracion: Y la gente renueva su membresía año tras año. La tasa de renovación es del 90%. El cliente casi no se va.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, teal stick figure with thumbs up holding a renewal card, happy expression, simple clean scene, no text, neon glow
+  personajes:
+  - Teal
+  escenario: null
+  reparto: []
+- titulo: El modelo
+  narracion: No ganan en el producto. Ganan en la relación. El margen es excusa para que entres. La membresía es el negocio real.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, simple flow diagram with arrow from membership card to dollar sign, orange and purple neon colors, clean minimal scene, no
+    text, neon glow
+  personajes: []
+  escenario: null
+  reparto: []
+- titulo: Cierre
+  narracion: Costco no vende mercancía. Vende acceso. Y eso vale miles de millones.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, orange stick figure in confident pose with arms crossed, neon dollar signs in background, serious smug expression, simple clean
+    scene, no text, neon glow
+  personajes:
+  - Orange
+  escenario: null
+  reparto: []

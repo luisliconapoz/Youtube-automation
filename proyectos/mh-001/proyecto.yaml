@@ -1,0 +1,43 @@
+# ════════════════════════════════════════════════════════════════════
+#  CANAL: MONEY LAB — universo oficial (guía: guia/guia_oficial.jpg)
+# ════════════════════════════════════════════════════════════════════
+nombre: MH-001 Money House — Costo real de una casa
+canal: false
+canal_origen: money-lab
+nicho: "real estate, credit, debt, insurance and personal finance"
+
+estilo:
+  descripcion: ""
+  paleta: ["#00f0ff", "#33ff00", "#e07b1a", "#c8c8c8"]
+  personajes:
+    Cyan:
+      rol: "narrator and main character"
+      personalidad: "friendly, curious, practical"
+      colores: ["#00f0ff"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, a small tuft of hair, a small house icon on the chest and a glowing cyan neon outline body"
+    Lime:
+      rol: "credit, loans, debt and insurance expert"
+      personalidad: "calm, strict, logical"
+      colores: ["#33ff00"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, a baseball cap, holding a calculator, glowing lime green neon outline"
+    Brown:
+      rol: "real estate agent: buying, renting and mortgages"
+      personalidad: "energetic, persuasive, friendly"
+      colores: ["#e07b1a"]
+      descripcion: "stick figure with a solid black round head, big white cartoon eyes, holding a house key and a small house, glowing brown-orange neon outline"
+    Gray:
+      rol: "everyday person who is buying or renting"
+      personalidad: "worried but hopeful, practical"
+      colores: ["#c8c8c8"]
+      descripcion: "stick figure with a black round head, big white cartoon eyes, messy hair, a collared shirt with a pocket, glowing light gray neon outline"
+  escenarios:
+    casa: "simple neon outline of a house with a small garden"
+    oficina: "simple neon desk with a laptop and a clipboard checklist"
+    banco: "simple neon outline of a bank building"
+
+reglas_extra:
+  - "Cyan guía la historia; Lime aparece en temas de crédito, préstamos, deudas y seguros; Brown en compra, renta e hipotecas; Gray representa a la persona común con sus dudas."
+
+config:
+  audio:
+    voz: es-ES-AlvaroNeural

@@ -21,8 +21,12 @@ from pilo_studio.utils import log, slug
 
 def exportar(video: Path, guion: Guion, build: Path, cfg: dict) -> Path:
     raiz = carpeta_salida(cfg)
-    base = f"{date.today():%Y-%m-%d}_{slug(guion.titulo)}_{guion.formato}"
-    destino = raiz / base
+    if guion.codigo:  # p.ej. salida/FS-001/FS-001.mp4
+        base = guion.codigo
+        destino = raiz / guion.codigo
+    else:
+        base = f"{date.today():%Y-%m-%d}_{slug(guion.titulo)}_{guion.formato}"
+        destino = raiz / base
     destino.mkdir(parents=True, exist_ok=True)
 
     final = destino / f"{base}.mp4"

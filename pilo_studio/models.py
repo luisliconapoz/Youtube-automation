@@ -21,6 +21,7 @@ class Escena:
     id: int
     narracion: str                     # texto exacto para la voz
     prompt_visual: str                 # descripción de la imagen
+    titulo: str | None = None          # título visible en pantalla: "Imagen N — titulo"
     personajes: list[str] = field(default_factory=list)
     escenario: str | None = None
     # [{"personaje": "Cyan", "expresion": "Thinking", "pose": "hand on chin"}]
@@ -50,6 +51,7 @@ class Guion:
     etiquetas: list[str] = field(default_factory=list)
     miniatura_texto: str = ""          # 2-5 palabras impactantes para la miniatura
     miniatura_prompt: str = ""         # descripción visual de la miniatura
+    codigo: str | None = None          # código del video (p.ej. FS-001): carpeta de salida y nombre de archivos
     escenas: list[Escena] = field(default_factory=list)
 
     @property
@@ -73,5 +75,6 @@ class Guion:
             etiquetas=list(d.get("etiquetas", [])),
             miniatura_texto=d.get("miniatura_texto", ""),
             miniatura_prompt=d.get("miniatura_prompt", ""),
+            codigo=d.get("codigo"),
             escenas=[Escena.desde_dict({"id": i + 1, **e}) for i, e in enumerate(d.get("escenas", []))],
         )

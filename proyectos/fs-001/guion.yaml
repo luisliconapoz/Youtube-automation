@@ -1,0 +1,62 @@
+titulo: The Hidden System That Makes Banks Money
+formato: short
+codigo: FS-001
+descripcion: 'Seguir el recorrido de un dólar: depósitos, préstamos, intereses y comisiones del banco.'
+etiquetas: []
+miniatura_texto: ''
+miniatura_prompt: ''
+escenas:
+- titulo: Hook
+  narracion: ¿Sabías que cada vez que depositas dinero en el banco, ese dinero empieza a trabajar... pero no para ti?
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure character with round head and white eyes, surprised expression, pointing at a pile of gold coins, simple
+    clean scene, no text, professional look, neon glow effect
+  personajes:
+  - Blue
+  escenario: null
+  reparto: []
+- titulo: El depósito
+  narracion: Cuando depositas $1,000, el banco no los guarda en una caja. Los usa.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure character placing money into a bank building, happy expression, simple clean scene, no text, neon glow, bank
+    building outlined in cyan neon
+  personajes:
+  - Blue
+  escenario: null
+  reparto: []
+- titulo: El préstamo
+  narracion: El banco presta ese dinero a otras personas... y les cobra intereses. Ahí empieza el negocio.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan bank building with neon outline passing money to a yellow stick figure (Farmer), arrows showing money flow, simple scene,
+    no text, neon glow
+  personajes:
+  - Farmer
+  escenario: null
+  reparto: []
+- titulo: La diferencia
+  narracion: El banco te paga, digamos, 2% de interés por tu depósito. Pero cobra 8% al que recibe el préstamo. Esa diferencia es su ganancia.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure looking at two glowing percentage symbols, one small (2%) and one large (8%), thinking expression, simple
+    scene, no text, neon glow
+  personajes:
+  - Blue
+  escenario: null
+  reparto: []
+- titulo: Las comisiones
+  narracion: 'Y encima de eso, cobra comisiones: por transferencias, por cuentas, por tarjetas. Todo suma.'
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure surrounded by floating dollar signs and fee symbols, concerned expression, simple clean scene, no text, neon
+    glow effect
+  personajes:
+  - Blue
+  escenario: null
+  reparto: []
+- titulo: El ciclo
+  narracion: Mientras tú crees que tu dinero está guardado, el banco lo está multiplicando. Ese es el sistema.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, arrows forming a cycle showing money growing, cyan and green neon colors, simple clean scene, no text, professional look
+  personajes: []
+  escenario: null
+  reparto: []
+- titulo: Cierre
+  narracion: Los bancos no guardan dinero. Venden tiempo y riesgo. Y tú eres parte del negocio.
+  prompt_visual: 2D neon illustration, 9:16 vertical format, black background, cyan stick figure in serious pose with arms crossed, neon dollar bills floating in background, serious expression, simple clean
+    scene, no text, neon glow
+  personajes:
+  - Blue
+  escenario: null
+  reparto: []
