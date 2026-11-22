@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+# Artefactos intermedios de cada proyecto (se regeneran)
+proyectos/*/build/
+# Salida local por defecto (la real va a OneDrive)
+salida/
+.env

@@ -1,0 +1,15 @@
+# Metadatos y biblia de estilo del proyecto
+nombre: Mi proyecto
+
+estilo:
+  # Prefijo que se antepone a TODOS los prompts visuales
+  descripcion: "ilustración 3D estilo animación, iluminación cálida cinematográfica, alto detalle"
+  # Opcional: si se deja vacío se extrae automáticamente de referencias/
+  paleta: []
+  # Descripción canónica de cada personaje (se inyecta cuando aparece)
+  personajes: {}
+  # Escenarios recurrentes
+  escenarios: {}
+
+# Sobrescribe cualquier clave de config/settings.yaml solo para este proyecto
+config: {}

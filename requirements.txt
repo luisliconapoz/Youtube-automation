@@ -1,0 +1,13 @@
+# Pilo Studio — dependencias 100% open-source / costo cero
+edge-tts>=7.0          # Locución neural gratuita (Microsoft Edge Read Aloud)
+moviepy>=2.1           # Composición de video
+Pillow>=10.0           # Procesamiento de imágenes / placeholders / paleta
+numpy>=1.26
+requests>=2.31         # Pollinations.ai y Ollama (HTTP)
+PyYAML>=6.0            # Configuración y guiones
+
+# Opcional: generación de imágenes 100% local (GPU recomendada)
+# diffusers>=0.30
+# torch
+# transformers
+# accelerate
