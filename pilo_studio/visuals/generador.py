@@ -4,8 +4,10 @@ Cadena de respaldo configurable (todas gratuitas, todas en la nube):
   pollinations -> Pollinations.ai (Flux). Sin clave funciona con límite de velocidad;
                   con POLLINATIONS_API_KEY (registro gratuito) admite varias peticiones en paralelo.
   huggingface  -> Inference API gratuita de Hugging Face (FLUX.1-schnell), requiere HF_TOKEN
+Respaldo local, solo si la nube falla incluso tras una ronda extra:
+  vecina       -> reutiliza la imagen generada más cercana de la secuencia
   referencias  -> reutiliza las imágenes de referencia del usuario
-  placeholder  -> degradado con la paleta del proyecto + texto (siempre funciona)
+  placeholder  -> último recurso: forma neón abstracta sobre negro (sin texto)
 
 Todas las imágenes se piden EN LOTE a través de una cola compartida
 (ver visuals/cola.py): los proveedores en la nube trabajan en paralelo, cada uno
@@ -62,7 +64,7 @@ def pollinations(cfg: dict, semilla: int) -> Proveedor:
     )
 
     def generar(t: Trabajo) -> Image.Image | None:
-        url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(t.prompt[:1500])
+        url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(t.prompt)
         params = {"width": t.ancho, "height": t.alto, "seed": semilla, "model": pc.get("modelo", "flux"),
                   "nologo": "true", "enhance": "false", "negative": cfg["imagenes"].get("negativo", "")}
         try:
@@ -90,7 +92,9 @@ def huggingface(cfg: dict, semilla: int) -> Proveedor | None:
         w, h = (1024, 576) if t.ancho > t.alto else (576, 1024)
         try:
             r = requests.post(url, headers={"Authorization": f"Bearer {token}"}, timeout=hc.get("timeout", 120),
-                              json={"inputs": t.prompt, "parameters": {"width": w, "height": h, "seed": semilla}})
+                              json={"inputs": t.prompt, "parameters": {
+                                  "width": w, "height": h, "seed": semilla,
+                                  "negative_prompt": cfg["imagenes"].get("negativo", "")}})
         except requests.RequestException as e:
             raise Reintentable(f"huggingface: {type(e).__name__}") from None
         return _imagen_de(r, "huggingface", prov.limitador)
@@ -115,41 +119,43 @@ def desde_referencias(biblia: BibliaEstilo, escena: Escena) -> Image.Image | Non
     return Image.open(refs[(escena.id - 1) % len(refs)])
 
 
-# ------------------------------------------------------------ placeholder
+# ------------------------------------------------------------ placeholder (último recurso)
 def _hex(c: str) -> tuple[int, int, int]:
     c = c.lstrip("#")
     return tuple(int(c[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
 
 
 def placeholder(biblia: BibliaEstilo, escena: Escena, ancho: int, alto: int) -> Image.Image:
-    paleta = [_hex(c) for c in (biblia.paleta or ["#1d3557", "#457b9d", "#e63946"])]
-    a, b = paleta[escena.id % len(paleta)], paleta[(escena.id + 1) % len(paleta)]
-    img = Image.new("RGB", (ancho, alto))
-    d = ImageDraw.Draw(img)
-    for y in range(alto):
-        t = y / alto
-        d.line([(0, y), (ancho, y)], fill=tuple(int(a[i] * (1 - t) + b[i] * t) for i in range(3)))
-    img = img.filter(ImageFilter.GaussianBlur(2))
-    d = ImageDraw.Draw(img)
-    try:
-        fuente = ImageFont.truetype("DejaVuSans-Bold.ttf", max(ancho, alto) // 30)
-    except OSError:
-        fuente = ImageFont.load_default()
-    d.text((ancho // 2, alto // 3), f"Escena {escena.id}", fill="white", font=fuente, anchor="mm")
-    return img
+    """Forma neón abstracta sobre negro, coherente con el estilo y sin texto."""
+    paleta = [_hex(c) for c in (biblia.paleta or ["#00e5ff", "#39ff14", "#ff2bd6"])]
+    color = paleta[escena.id % len(paleta)]
+    capa = Image.new("RGB", (ancho, alto), "black")
+    d = ImageDraw.Draw(capa)
+    r = min(ancho, alto) // 4
+    cx, cy = ancho // 2 + (escena.id % 3 - 1) * r, alto // 2
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=color, width=max(4, r // 20))
+    d.line((cx - 2 * r, cy + r + r // 2, cx + 2 * r, cy + r + r // 2), fill=color, width=max(3, r // 30))
+    brillo = capa.filter(ImageFilter.GaussianBlur(r // 6))
+    return Image.blend(brillo, capa, 0.6).point(lambda v: min(255, int(v * 1.6)))
 
 
 # ------------------------------------------------------------ orquestación
+def nombre_imagen(n: int) -> str:
+    """Nombres secuenciales: image_001, image_002…"""
+    return f"image_{n:03d}"
+
+
 def trabajos_del_guion(guion: Guion, destino: Path, ancho: int, alto: int, biblia: BibliaEstilo) -> dict[str, tuple]:
     """{clave: (Trabajo, escena|None)} para todo lo que aún no está en caché."""
     from pilo_studio.visuals.miniatura import prompt_miniatura, tam_miniatura
 
+    encuadre = "vertical 9:16" if alto > ancho else "16:9 widescreen"
     trabajos: dict[str, tuple] = {}
     for e in guion.escenas:
-        ruta = destino / f"escena_{e.id:03d}.png"
+        ruta = destino / f"{nombre_imagen(e.id)}.png"
         e.imagen = str(ruta)
         if not ruta.exists():
-            trabajos[ruta.stem] = (Trabajo(ruta.stem, biblia.prompt_final(e), ancho, alto, ruta), e)
+            trabajos[ruta.stem] = (Trabajo(ruta.stem, biblia.prompt_final(e, encuadre), ancho, alto, ruta), e)
     mw, mh = tam_miniatura(guion.formato)
     ruta = destino / "miniatura_fondo.png"
     if not ruta.exists():
@@ -157,8 +163,22 @@ def trabajos_del_guion(guion: Guion, destino: Path, ancho: int, alto: int, bibli
     return trabajos
 
 
+def _vecina(guion: Guion, escena: Escena | None) -> Image.Image | None:
+    """La imagen ya generada más cercana en la secuencia (prioriza la anterior)."""
+    if escena is None:
+        candidatas = guion.escenas
+    else:
+        i = guion.escenas.index(escena)
+        orden = sorted(range(len(guion.escenas)), key=lambda j: (abs(j - i), j > i))
+        candidatas = [guion.escenas[j] for j in orden if j != i]
+    for e in candidatas:
+        if e.imagen and Path(e.imagen).exists():
+            return Image.open(e.imagen)
+    return None
+
+
 def generar_imagenes(guion: Guion, build: Path, cfg: dict, biblia: BibliaEstilo) -> Guion:
-    """Genera TODAS las imágenes del video (escenas + fondo de miniatura) en un solo lote."""
+    """Genera TODAS las imágenes del video (secuencia + fondo de miniatura) en un solo lote."""
     fmt = cfg["formatos"][guion.formato]
     ancho, alto = fmt["ancho"], fmt["alto"]
     destino = build / "imagenes"
@@ -168,35 +188,51 @@ def generar_imagenes(guion: Guion, build: Path, cfg: dict, biblia: BibliaEstilo)
         log.info("  Todas las imágenes están en caché.")
         return guion
 
+    cfg = {**cfg, "imagenes": {**cfg["imagenes"], "negativo": biblia.negativo()}}
     orden = cfg["imagenes"]["proveedores"]
-    nube = [p for n in orden if n in FABRICAS_RED and (p := FABRICAS_RED[n](cfg, biblia.semilla))]
-    if not cfg["imagenes"].get("repartir_entre_proveedores", True):
-        nube = nube[:1]
+
+    def proveedores_nube():
+        nube = [p for n in orden if n in FABRICAS_RED and (p := FABRICAS_RED[n](cfg, biblia.semilla))]
+        return nube if cfg["imagenes"].get("repartir_entre_proveedores", True) else nube[:1]
 
     def guardar(t: Trabajo, img: Image.Image) -> None:
         _ajustar(img, t.ancho, t.alto).save(t.ruta)
         t.ruta.with_suffix(".prompt.txt").write_text(t.prompt, encoding="utf-8")
 
     t0 = time.time()
+    nube = proveedores_nube()
     log.info("  Lote de %d imágenes · proveedores: %s", len(trabajos),
              ", ".join(f"{p.nombre}×{p.concurrencia}" for p in nube) or "ninguno en la nube")
     sin_hacer = Cola([t for t, _ in trabajos.values()], nube, guardar).ejecutar()
 
-    # Respaldo local (instantáneo) para lo que la nube no pudo generar
+    # Ronda extra: los fallos suelen ser saturación momentánea; se reintenta tras una pausa
+    pausa = float(cfg["imagenes"].get("pausa_ronda_extra", 30))
+    if sin_hacer and nube and pausa >= 0:
+        log.info("  %d imágenes pendientes; ronda extra en %.0f s…", len(sin_hacer), pausa)
+        time.sleep(pausa)
+        for t in sin_hacer:
+            t.intentados.clear()
+            t.fallos.clear()
+        sin_hacer = Cola(sin_hacer, proveedores_nube(), guardar).ejecutar()
+
+    # Respaldo local para lo que la nube no pudo generar
     for t in sin_hacer:
-        escena = trabajos[t.clave][1] or (guion.escenas[0] if guion.escenas else None)
+        escena = trabajos[t.clave][1]
         img, origen = None, None
         for n in orden:
-            if n == "referencias" and escena is not None:
-                img, origen = desde_referencias(biblia, escena), n
+            if n == "vecina":
+                img = _vecina(guion, escena)
+            elif n == "referencias" and escena is not None:
+                img = desde_referencias(biblia, escena)
             elif n == "placeholder":
-                img, origen = placeholder(biblia, escena or Escena(0, "", ""), t.ancho, t.alto), n
+                img = placeholder(biblia, escena or Escena(0, "", ""), t.ancho, t.alto)
             if img is not None:
+                origen = n
                 break
         if img is None:
             img, origen = placeholder(biblia, escena or Escena(0, "", ""), t.ancho, t.alto), "placeholder"
         guardar(t, img)
-        log.info("  🖼  %s vía %s (respaldo)", t.clave, origen)
+        log.warning("  ⚠️  %s vía respaldo '%s' (la nube no respondió)", t.clave, origen)
     log.info("  Lote completo en %.0f s (%d desde la nube, %d de respaldo)",
              time.time() - t0, len(trabajos) - len(sin_hacer), len(sin_hacer))
     return guion

@@ -23,6 +23,8 @@ class Escena:
     prompt_visual: str                 # descripción de la imagen
     personajes: list[str] = field(default_factory=list)
     escenario: str | None = None
+    # [{"personaje": "Cyan", "expresion": "Thinking", "pose": "hand on chin"}]
+    reparto: list[dict] = field(default_factory=list)
     # --- Rellenado por las fases siguientes ---
     audio: str | None = None
     duracion: float | None = None
@@ -33,6 +35,9 @@ class Escena:
     def desde_dict(cls, d: dict) -> "Escena":
         d = dict(d)
         d["palabras"] = [Palabra(**p) for p in d.get("palabras", [])]
+        d["reparto"] = [dict(r) for r in d.get("reparto", []) or []]
+        if d["reparto"] and not d.get("personajes"):
+            d["personajes"] = [r.get("personaje") for r in d["reparto"] if r.get("personaje")]
         campos = cls.__dataclass_fields__
         return cls(**{k: v for k, v in d.items() if k in campos})
 

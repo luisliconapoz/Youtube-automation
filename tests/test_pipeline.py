@@ -38,9 +38,38 @@ def test_plantilla_divide_en_escenas(proyecto):
 
 def test_prompt_inyecta_personaje_y_paleta(proyecto):
     p = Proyecto.cargar(proyecto)
-    b = BibliaEstilo(p)
+    b = BibliaEstilo(p, cargar_config(p.ruta))
     prompt = b.prompt_final(Escena(1, "Pilo despega", "robot takes off", personajes=["Pilo"], escenario="nave"))
-    assert "orange robot" in prompt and "cockpit" in prompt and "#ffb703" in prompt
+    assert "orange robot" in prompt and "cockpit" in prompt and "amber" in prompt and "#" not in prompt
+
+
+def test_prompt_neon_con_reparto_y_prohibiciones(proyecto):
+    p = Proyecto.cargar(proyecto)
+    b = BibliaEstilo(p, cargar_config(p.ruta))
+    e = Escena(1, "Pilo duda", 'Pilo looks at a sign reading "SALE 50%" next to 3 coins', escenario="nave",
+               reparto=[{"personaje": "Pilo", "expresion": "Thinking", "pose": "hand on chin"}])
+    prompt = b.prompt_final(e, "16:9 widescreen")
+    assert prompt.startswith("minimalist 2D neon vector illustration on a pure black background")
+    assert "curious explorer robot" in prompt and "thinking expression" in prompt and "pose: hand on chin" in prompt
+    import re
+    assert "SALE" not in prompt and "%" not in prompt and "#" not in prompt
+    assert set(re.findall(r"\d+", prompt)) <= {"2", "16", "9", "3"}  # solo "2D", "16:9" y "no 3D render"
+    assert "16:9" in prompt and "no 3D render" in prompt and "no text" in prompt
+
+
+def test_limpiar_prompt():
+    from pilo_studio.visuals.estilo import limpiar_prompt
+
+    assert limpiar_prompt("a chart showing 50% growth and $1,000 bills") == "a chart showing growth and bills"
+    assert limpiar_prompt('a sign reading "SALE" on a wall') == "a sign on a wall"
+    assert limpiar_prompt("2D neon coin with 3 stacks") == "2D neon coin with stacks"
+
+
+def test_universo_money_lab_carga_personajes_oficiales():
+    from pilo_studio.config import RAIZ
+
+    p = Proyecto.cargar_meta(RAIZ / "proyectos" / "money-lab")
+    assert {"Cyan", "Green", "Pink", "Farmer", "Rich"} <= set(p["personajes"])
 
 
 def test_paleta_desde_referencias(tmp_path):
@@ -84,6 +113,8 @@ def test_pipeline_completo_offline(proyecto, tmp_path, monkeypatch):
     final = pipeline.producir(proyecto, formato="short", cfg=cfg)
     assert final.exists() and final.stat().st_size > 1000
     assert final.parent.parent == tmp_path / "onedrive"
+    imagenes = sorted((proyecto / "build" / "short" / "imagenes").glob("image_*.png"))
+    assert [i.stem for i in imagenes][:2] == ["image_001", "image_002"]
     assert (final.parent / "publicacion.txt").exists()
     miniatura = final.with_name(final.stem + "_miniatura.jpg")
     assert miniatura.exists()
@@ -105,27 +136,60 @@ def test_claude_convierte_salida_estructurada(proyecto, monkeypatch):
 
     from pilo_studio.director import guionista
 
-    salida = guionista.GuionIA(titulo="T", descripcion="D", etiquetas=["a"], miniatura_texto="WOW",
-                               miniatura_prompt="robot close-up", escenas=[
-        guionista.EscenaIA(narracion="Hola", prompt_visual="robot", personajes=["Pilo"], escenario="nave")])
     capturado = {}
+
+    class Stream:
+        def __init__(self, **kw):
+            capturado.update(kw)
+            Modelo = kw["output_format"]
+            self.salida = Modelo.model_validate({
+                "titulo": "T", "descripcion": "D", "etiquetas": ["a"], "miniatura_texto": "WOW",
+                "miniatura_prompt": "robot close-up",
+                "escenas": [{"narracion": "Hola", "prompt_visual": "robot waves", "escenario": "nave",
+                             "reparto": [{"personaje": "Pilo", "expresion": "Happy", "pose": "waving"}]}]})
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def get_final_message(self):
+            return SimpleNamespace(stop_reason="end_turn", parsed_output=self.salida,
+                                   usage=SimpleNamespace(input_tokens=1, output_tokens=1))
 
     class Falso:
         def __init__(self):
-            self.beta = SimpleNamespace(messages=SimpleNamespace(parse=self.parse))
-
-        def parse(self, **kw):
-            capturado.update(kw)
-            return SimpleNamespace(stop_reason="end_turn", parsed_output=salida,
-                                   usage=SimpleNamespace(input_tokens=1, output_tokens=1))
+            self.beta = SimpleNamespace(messages=SimpleNamespace(stream=Stream))
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
     monkeypatch.setattr(guionista.anthropic, "Anthropic", Falso)
     p = Proyecto.cargar(proyecto)
-    g = guionista.guion_claude(p, "short", cargar_config(p.ruta), BibliaEstilo(p))
-    assert g.titulo == "T" and g.escenas[0].personajes == ["Pilo"] and g.escenas[0].id == 1
-    assert capturado["output_format"] is guionista.GuionIA
-    assert "orange robot" in capturado["messages"][0]["content"]
+    cfg = cargar_config(p.ruta)
+    g = guionista.guion_claude(p, "short", cfg, BibliaEstilo(p, cfg))
+    e = g.escenas[0]
+    assert g.titulo == "T" and e.id == 1 and e.personajes == ["Pilo"]
+    assert e.reparto == [{"personaje": "Pilo", "expresion": "Happy", "pose": "waving"}]
+    contenido = capturado["messages"][0]["content"]
+    assert "orange robot" in contenido and "Thinking" in contenido and "PROHIBIDO" in contenido
+    assert "neón 2D" in capturado["system"]
+
+
+def test_esquema_solo_admite_personajes_y_expresiones_oficiales(proyecto):
+    import pydantic
+
+    from pilo_studio.director.guionista import modelo_guion
+
+    p = Proyecto.cargar(proyecto)
+    Modelo = modelo_guion(BibliaEstilo(p, cargar_config(p.ruta)))
+    base = {"titulo": "T", "descripcion": "", "etiquetas": [], "miniatura_texto": "", "miniatura_prompt": ""}
+    escena = {"narracion": "x", "prompt_visual": "y", "escenario": None}
+    Modelo.model_validate({**base, "escenas": [{**escena, "reparto": [
+        {"personaje": "Pilo", "expresion": "Thinking", "pose": "hand on chin"}]}]})
+    for malo in ({"personaje": "Batman", "expresion": "Happy", "pose": "x"},
+                 {"personaje": "Pilo", "expresion": "Furioso", "pose": "x"}):
+        with pytest.raises(pydantic.ValidationError):
+            Modelo.model_validate({**base, "escenas": [{**escena, "reparto": [malo]}]})
 
 
 def test_subida_nube_se_omite_sin_config(tmp_path, monkeypatch):
@@ -156,3 +220,34 @@ def test_miniatura_largo_1280x720(tmp_path):
     img = Image.open(out)
     assert img.size == (1280, 720) and out.stat().st_size < 2_000_000
     assert img.getpixel((640, 650)) != img.getpixel((640, 50))  # hay texto/degradado abajo
+
+
+def test_prompt_largo_se_recorta_sin_perder_reglas(proyecto):
+    p = Proyecto.cargar(proyecto)
+    b = BibliaEstilo(p, cargar_config(p.ruta))
+    e = Escena(1, "", "robot " * 600, reparto=[{"personaje": "Pilo", "expresion": "Happy", "pose": "waving"}])
+    prompt = b.prompt_final(e)
+    assert len(prompt) <= 1400 and prompt.endswith("no realistic textures") and "orange robot" in prompt
+
+
+def test_respaldo_reutiliza_imagen_vecina(proyecto, monkeypatch):
+    from PIL import Image
+
+    from pilo_studio.visuals import generador
+    from pilo_studio.visuals.cola import Proveedor
+
+    def solo_impares(t):
+        if t.clave in ("image_001", "miniatura_fondo"):
+            return Image.new("RGB", (t.ancho, t.alto), (0, 229, 255))
+        raise RuntimeError("caído")
+
+    monkeypatch.setattr(generador, "FABRICAS_RED", {"pollinations": lambda c, s: Proveedor(
+        "pollinations", solo_impares, reintentos=1, max_fallos_seguidos=100)})
+    p = Proyecto.cargar(proyecto)
+    cfg = cargar_config(p.ruta)
+    cfg["imagenes"]["pausa_ronda_extra"] = 0
+    cfg["imagenes"]["proveedores"] = ["pollinations", "vecina", "placeholder"]
+    cfg["formatos"]["short"].update(ancho=90, alto=160)
+    g = Guion("t", "short", escenas=[Escena(1, "a", "x"), Escena(2, "b", "y")])
+    generador.generar_imagenes(g, p.build("short"), cfg, BibliaEstilo(p, cfg))
+    assert Image.open(g.escenas[1].imagen).getpixel((5, 5)) == (0, 229, 255)  # copia de image_001

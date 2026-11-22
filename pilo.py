@@ -9,7 +9,8 @@ Conecta todo el flujo en un solo comando:
 Uso:
     python pilo.py                                   # modo guiado (pregunta todo)
     python pilo.py "Por qué el cielo es azul"        # idea directa, formato largo + short
-    python pilo.py "idea" --formato short --universo proyectos/ejemplo-pilo-espacio
+    python pilo.py "idea" --formato short --universo proyectos/money-lab
+    python pilo.py "idea" --sin-universo             # sin personajes oficiales
     python pilo.py --proyecto proyectos/mi-proyecto  # proyecto ya preparado
     python pilo.py --diagnostico                     # revisa el entorno y los secretos
 """
@@ -28,10 +29,21 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent
 sys.path.insert(0, str(RAIZ))
 
+from pilo_studio.config import cargar_config  # noqa: E402
 from pilo_studio.pipeline import FASES, producir  # noqa: E402
+from pilo_studio.proyecto import Proyecto  # noqa: E402
 from pilo_studio.utils import slug  # noqa: E402
 
 log = logging.getLogger("pilo")
+
+
+# --------------------------------------------------------------------------- universo
+def universo_por_defecto() -> Path | None:
+    ruta = cargar_config().get("universo_por_defecto")
+    if not ruta:
+        return None
+    ruta = Path(ruta) if Path(ruta).is_absolute() else RAIZ / ruta
+    return ruta if (ruta / "proyecto.yaml").exists() else None
 
 
 # --------------------------------------------------------------------------- diagnóstico
@@ -55,6 +67,13 @@ def diagnostico() -> bool:
     fila(rclone and conf, "OneDrive (rclone)",
          "ok: se subirá automáticamente" if rclone and conf
          else "sin configurar: el video queda en salida/ (ver scripts/conectar_onedrive.sh)")
+    uni = universo_por_defecto()
+    if uni:
+        u = Proyecto.cargar_meta(uni)
+        nombres = ", ".join(u["personajes"]) or "sin personajes"
+        fila(not u["provisional"], "Universo por defecto",
+             f"{uni.name} ({nombres})" + ("  ← personajes PROVISIONALES: completa la guía oficial"
+                                          if u["provisional"] else ""))
     print()
     return ffmpeg
 
@@ -103,14 +122,17 @@ def preguntar() -> argparse.Namespace:
         formato = "ambos"
     universos = sorted(p for p in (RAIZ / "proyectos").iterdir()
                        if p.is_dir() and not p.name.startswith("_") and (p / "proyecto.yaml").exists())
-    universo = None
+    defecto = universo_por_defecto()
+    universo = defecto
     if universos:
-        print("¿Reutilizar personajes y estilo de un proyecto existente?")
-        print("  0) No, estilo genérico")
+        print("¿Qué universo de personajes usar?")
+        print("  0) Ninguno (sin personajes oficiales)")
         for i, u in enumerate(universos, 1):
-            print(f"  {i}) {u.name}")
-        op = input("Elige un número (Enter = 0): ").strip()
-        if op.isdigit() and 0 < int(op) <= len(universos):
+            print(f"  {i}) {u.name}{'  (por defecto)' if u == defecto else ''}")
+        op = input("Elige un número (Enter = por defecto): ").strip()
+        if op == "0":
+            universo = None
+        elif op.isdigit() and 0 < int(op) <= len(universos):
             universo = universos[int(op) - 1]
     return argparse.Namespace(idea=idea, formato=formato, universo=universo, nombre=None,
                               proyecto=None, hasta="exportar", regenerar_guion=False)
@@ -149,9 +171,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("idea", nargs="?", help="La idea central del video (entre comillas)")
     ap.add_argument("--formato", choices=["largo", "short", "ambos"], default="ambos")
     ap.add_argument("--proyecto", type=Path, help="Usar un proyecto existente en lugar de una idea nueva")
-    ap.add_argument("--universo", type=Path, help="Proyecto del que copiar personajes, estilo y referencias")
+    ap.add_argument("--universo", type=Path,
+                    help="Proyecto del que copiar personajes, estilo y referencias (por defecto: universo_por_defecto)")
+    ap.add_argument("--sin-universo", action="store_true", help="No usar el universo de personajes por defecto")
     ap.add_argument("--nombre", help="Nombre del proyecto (por defecto, las primeras palabras de la idea)")
-    ap.add_argument("--hasta", choices=FASES, default="exportar", help="Detenerse tras esta fase")
+    ap.add_argument("--hasta", choices=FASES, default="exportar",
+                    help="Detenerse tras este paso: guion | medios (imágenes+voz) | montaje | exportar")
     ap.add_argument("--regenerar-guion", action="store_true")
     ap.add_argument("--diagnostico", action="store_true", help="Solo revisar el entorno")
     ap.add_argument("-v", "--verbose", action="store_true")
@@ -168,6 +193,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not args.idea and not args.proyecto:
         args = preguntar()
+    elif not args.proyecto and not args.universo and not getattr(args, "sin_universo", False):
+        args.universo = universo_por_defecto()
 
     proyecto = args.proyecto or crear_proyecto(args.idea, args.nombre, args.universo)
     formatos = ["largo", "short"] if args.formato == "ambos" else [args.formato]

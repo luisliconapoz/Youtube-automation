@@ -1,15 +1,18 @@
-"""Orquestador del pipeline de Pilo Studio.
+"""Orquestador del pipeline de Pilo Studio, en 4 pasos:
 
-    idea + referencias ─► [1 Guion] ─► [2 Lote de imágenes + miniatura] ─► [3 Voz]
-                       ─► [4 Montaje + subtítulos] ─► [5 Exportar + subir a OneDrive]
+    [1] Dirección y guion   Claude escribe el guion y los prompts de imagen (neón 2D, personajes oficiales)
+    [2] Imágenes ∥ Voz      lote de imágenes (cola paralela) y edge-tts AL MISMO TIEMPO
+    [3] Ensamblaje          MoviePy + FFmpeg, subtítulos sincronizados quemados en pantalla
+    [4] Exportación         .mp4 + miniatura + .srt + publicacion.txt → salida/ y OneDrive
 
-Cada fase guarda su resultado en proyectos/<x>/build/<formato>/, por lo que
+Cada paso guarda su resultado en proyectos/<x>/build/<formato>/, por lo que
 una ejecución interrumpida se reanuda sin repetir trabajo (ni llamadas de red).
 """
 
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from pilo_studio.assembly.montador import montar
@@ -24,7 +27,7 @@ from pilo_studio.visuals.estilo import BibliaEstilo
 from pilo_studio.visuals.generador import generar_imagenes
 from pilo_studio.visuals.miniatura import componer_miniatura
 
-FASES = ["guion", "imagenes", "audio", "montaje", "exportar"]
+FASES = ["guion", "medios", "montaje", "exportar"]
 
 
 def producir(ruta_proyecto: Path | str, formato: str = "largo", hasta: str = "exportar",
@@ -34,47 +37,47 @@ def producir(ruta_proyecto: Path | str, formato: str = "largo", hasta: str = "ex
     if formato not in cfg["formatos"]:
         raise ValueError(f"Formato desconocido '{formato}'. Opciones: {list(cfg['formatos'])}")
     build = proyecto.build(formato)
-    biblia = BibliaEstilo(proyecto)
+    biblia = BibliaEstilo(proyecto, cfg)
     limite = FASES.index(hasta)
     t0 = time.time()
     log.info("🎬 Pilo Studio · proyecto '%s' · formato %s", proyecto.nombre, formato)
+    if proyecto.provisional:
+        log.warning("⚠️  Los personajes de este proyecto son PROVISIONALES (proyecto.yaml → provisional: true). "
+                    "Sustitúyelos por los de tu guía oficial para que las imágenes sean fieles.")
 
-    # 1. Guion
+    # 1. Dirección y guion
     ruta_guion = build / "guion.json"
     if ruta_guion.exists() and not regenerar_guion:
         guion = Guion.cargar(ruta_guion)
-        log.info("[1/5] Guion en caché (%d escenas). Usa --regenerar-guion para rehacerlo.", len(guion.escenas))
+        log.info("[1/4] Guion en caché (%d escenas). Usa --regenerar-guion para rehacerlo.", len(guion.escenas))
     else:
-        log.info("[1/5] Escribiendo guion…")
+        log.info("[1/4] Dirección y guion…")
         guion = escribir_guion(proyecto, formato, cfg, biblia)
         guion.guardar(ruta_guion)
     if limite == 0:
         return ruta_guion
 
-    # 2. Imágenes: todas en un solo lote (escenas + fondo de la miniatura)
-    log.info("[2/5] Lote de imágenes (semilla de estilo %d)…", biblia.semilla)
-    generar_imagenes(guion, build, cfg, biblia)
-    componer_miniatura(build / "imagenes" / "miniatura_fondo.png", guion.miniatura_texto or guion.titulo,
-                       guion.formato, build / "miniatura.jpg")
+    # 2. Imágenes (lote) y voz EN PARALELO: son independientes entre sí
+    log.info("[2/4] Lote de imágenes ∥ voz con edge-tts (%s)…", cfg["audio"]["voz"])
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="imagenes") as ex:
+        tarea_imagenes = ex.submit(generar_imagenes, guion, build, cfg, biblia)
+        generar_audio(guion, build, cfg)          # asyncio en el hilo principal
+        tarea_imagenes.result()                   # propaga cualquier error del lote
+    mcfg = cfg.get("miniatura", {}) or {}
+    texto = (guion.miniatura_texto or guion.titulo) if mcfg.get("titular", True) else ""
+    componer_miniatura(build / "imagenes" / "miniatura_fondo.png", texto, guion.formato, build / "miniatura.jpg")
     guion.guardar(ruta_guion)
     if limite == 1:
-        return build / "imagenes"
+        return build
 
-    # 3. Voz
-    log.info("[3/5] Locución con edge-tts (%s)…", cfg["audio"]["voz"])
-    generar_audio(guion, build, cfg)
-    guion.guardar(ruta_guion)
-    if limite == 2:
-        return build / "audio"
-
-    # 4. Montaje
-    log.info("[4/5] Ensamblando video y subtítulos…")
+    # 3. Ensamblaje y subtítulos
+    log.info("[3/4] Ensamblando video y subtítulos…")
     video = montar(guion, build, cfg)
-    if limite == 3:
+    if limite == 2:
         return video
 
-    # 5. Exportar
-    log.info("[5/5] Exportando…")
+    # 4. Exportación
+    log.info("[4/4] Exportando…")
     final = exportar(video, guion, build, cfg)
     log.info("⏱  Total: %.0f s", time.time() - t0)
     return final

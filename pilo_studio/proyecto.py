@@ -21,11 +21,34 @@ EXT_IMAGEN = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
 
 
 @dataclass
+class Personaje:
+    """Personaje oficial del universo: rol, colores y aspecto canónico."""
+
+    nombre: str
+    descripcion: str
+    rol: str = ""
+    colores: list[str] = field(default_factory=list)
+    variantes: dict[str, str] = field(default_factory=dict)  # temática -> descripción alternativa
+
+    def descripcion_para(self, tematica: str | None) -> str:
+        return self.variantes.get(tematica or "", self.descripcion)
+
+    @classmethod
+    def desde(cls, nombre: str, datos) -> "Personaje":
+        if isinstance(datos, str):
+            return cls(nombre, datos)
+        datos = datos or {}
+        return cls(nombre, datos.get("descripcion", ""), datos.get("rol", ""),
+                   list(datos.get("colores", []) or []), dict(datos.get("variantes", {}) or {}))
+
+
+@dataclass
 class Estilo:
-    descripcion: str = "ilustración digital cinematográfica, alto detalle"
+    descripcion: str = ""                  # vacío = usa direccion_arte.estilo de settings.yaml
     paleta: list[str] = field(default_factory=list)
-    personajes: dict[str, str] = field(default_factory=dict)
+    personajes: dict[str, Personaje] = field(default_factory=dict)
     escenarios: dict[str, str] = field(default_factory=dict)
+    tematica: str | None = None            # p. ej. "Money Lab" o "Wild Money" (elige variantes)
 
 
 @dataclass
@@ -35,6 +58,7 @@ class Proyecto:
     idea: str
     estilo: Estilo
     referencias: list[Path]
+    provisional: bool = False   # personajes aún sin la guía oficial
 
     @property
     def slug(self) -> str:
@@ -58,10 +82,11 @@ class Proyecto:
         meta = cargar_yaml(ruta / "proyecto.yaml")
         e = meta.get("estilo", {}) or {}
         estilo = Estilo(
-            descripcion=e.get("descripcion", Estilo.descripcion),
+            descripcion=e.get("descripcion", "") or "",
             paleta=list(e.get("paleta", []) or []),
-            personajes=dict(e.get("personajes", {}) or {}),
+            personajes={n: Personaje.desde(n, d) for n, d in (e.get("personajes", {}) or {}).items()},
             escenarios=dict(e.get("escenarios", {}) or {}),
+            tematica=e.get("tematica") or meta.get("tematica"),
         )
         refs_dir = ruta / "referencias"
         refs = sorted(p for p in refs_dir.glob("*") if p.suffix.lower() in EXT_IMAGEN) if refs_dir.exists() else []
@@ -71,4 +96,13 @@ class Proyecto:
             idea=idea_md.read_text(encoding="utf-8").strip(),
             estilo=estilo,
             referencias=refs,
+            provisional=bool(meta.get("provisional", False)),
         )
+
+    @staticmethod
+    def cargar_meta(ruta: Path | str) -> dict:
+        """Lectura ligera de proyecto.yaml (sin necesidad de idea.md)."""
+        meta = cargar_yaml(Path(ruta) / "proyecto.yaml")
+        return {"nombre": meta.get("nombre", Path(ruta).name),
+                "personajes": list(((meta.get("estilo") or {}).get("personajes") or {}).keys()),
+                "provisional": bool(meta.get("provisional", False))}

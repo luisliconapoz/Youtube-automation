@@ -1,10 +1,13 @@
 nombre: Pilo y los secretos del espacio
 
 estilo:
-  descripcion: "3D animated movie style, soft volumetric lighting, vibrant colors, cinematic composition"
+  descripcion: ""   # vacío = estilo neón 2D de config/settings.yaml
   paleta: ["#0b132b", "#3a506b", "#5bc0be", "#ffb703", "#fb8500"]
   personajes:
-    Pilo: "a small friendly orange robot with round glowing blue eyes, a single bent antenna and tiny rocket boots"
+    Pilo:
+      rol: "curious explorer robot who narrates the journey"
+      colores: ["#fb8500", "#5bc0be"]
+      descripcion: "a small friendly orange robot drawn with neon outlines, round glowing blue eyes, a single bent antenna and tiny rocket boots"
   escenarios:
     nave: "inside a cozy retro-futuristic spaceship cockpit with round windows"
     espacio: "deep space full of colorful nebulae and distant galaxies"
