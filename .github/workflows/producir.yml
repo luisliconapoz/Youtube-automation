@@ -1,0 +1,61 @@
+# Produce un video en los servidores de GitHub, sin abrir un Codespace.
+# Desde el iPad: repositorio → Actions → "Producir video" → Run workflow.
+name: Producir video
+on:
+  workflow_dispatch:
+    inputs:
+      idea:
+        description: "Idea del video (deja vacío si usas un proyecto existente)"
+        required: false
+        type: string
+      proyecto:
+        description: "Proyecto existente, p.ej. proyectos/ejemplo-pilo-espacio (opcional)"
+        required: false
+        type: string
+      universo:
+        description: "Copiar personajes/estilo de este proyecto (opcional)"
+        required: false
+        type: string
+      formato:
+        description: "Formato"
+        required: true
+        default: ambos
+        type: choice
+        options: [ambos, largo, short]
+
+jobs:
+  producir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar FFmpeg y rclone
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg rclone fonts-dejavu-core
+      - run: pip install -r requirements.txt
+      - name: Producir
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          RCLONE_CONF_B64: ${{ secrets.RCLONE_CONF_B64 }}
+          IDEA: ${{ inputs.idea }}
+          PROYECTO: ${{ inputs.proyecto }}
+          UNIVERSO: ${{ inputs.universo }}
+          FORMATO: ${{ inputs.formato }}
+        run: |
+          args=(--formato "$FORMATO")
+          if [ -n "$PROYECTO" ]; then args+=(--proyecto "$PROYECTO"); else args+=("$IDEA"); fi
+          if [ -n "$UNIVERSO" ]; then args+=(--universo "$UNIVERSO"); fi
+          python pilo.py "${args[@]}"
+      - name: Guardar el video como artefacto descargable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilo-studio-videos
+          path: salida/
+          retention-days: 14
+          if-no-files-found: warn
