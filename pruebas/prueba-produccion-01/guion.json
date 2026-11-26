@@ -1,0 +1,37 @@
+{
+  "titulo": "¿Por qué las empresas necesitan dinero para crecer?",
+  "formato": "1080x1920 (9:16), 30 fps",
+  "voz": "Kokoro v1.0 · em_alex · español",
+  "escenas": [
+    {
+      "id": 1,
+      "tipo": "hook",
+      "titular": "VENDE MUCHO…",
+      "narracion": "Esta empresa vende muchísimo… y aun así se está quedando sin dinero."
+    },
+    {
+      "id": 2,
+      "tipo": "explicacion",
+      "titular": "PRIMERO PAGA",
+      "narracion": "Primero paga materiales, sueldos y alquiler."
+    },
+    {
+      "id": 3,
+      "tipo": "explicacion",
+      "titular": "COBRA DESPUÉS",
+      "narracion": "Pero el cliente le paga dos meses después."
+    },
+    {
+      "id": 4,
+      "tipo": "explicacion",
+      "titular": "CRECER CUESTA HOY",
+      "narracion": "Y crecer exige gastar hoy lo que ganará mañana."
+    },
+    {
+      "id": 5,
+      "tipo": "cierre",
+      "titular": "COMBUSTIBLE",
+      "narracion": "Por eso pide préstamos o busca inversores: el dinero es el combustible del crecimiento."
+    }
+  ]
+}

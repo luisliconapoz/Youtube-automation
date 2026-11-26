@@ -1,0 +1,30 @@
+{
+  "duracion": 18.634,
+  "escenas": [
+    {
+      "id": 1,
+      "voz_inicio": 0.25,
+      "voz_fin": 3.977
+    },
+    {
+      "id": 2,
+      "voz_inicio": 4.277,
+      "voz_fin": 6.816
+    },
+    {
+      "id": 3,
+      "voz_inicio": 7.116,
+      "voz_fin": 9.507
+    },
+    {
+      "id": 4,
+      "voz_inicio": 9.807,
+      "voz_fin": 12.496
+    },
+    {
+      "id": 5,
+      "voz_inicio": 12.796,
+      "voz_fin": 17.734
+    }
+  ]
+}
