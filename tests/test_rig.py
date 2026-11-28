@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import yaml
 
-from pilo_studio.personajes import rig
+from pilo_studio.personajes import rig, validacion
 
 ALTO = 330
 PERSONAJES = list(rig.catalogo())
@@ -62,3 +62,25 @@ def test_la_geometria_de_la_cabeza_no_depende_del_personaje():
         filas, cols = np.where(a > 0)
         cajas.add((int(filas.min()), int(cols[filas == filas.min()].mean())))
     assert len(cajas) == 1
+
+
+def test_rostro_neutral_mismas_coordenadas_y_dimensiones():
+    """Ojos, pupilas, cejas y boca medidos en el render: idénticos en los 13."""
+    ref = validacion.medir("blue", "neutral")
+    assert all(ref.values()), ref
+    for k in PERSONAJES:
+        assert validacion.medir(k, "neutral") == ref, k
+
+
+@pytest.mark.parametrize("expresion", list(rig.EXPRESIONES))
+def test_zona_facial_identica_y_sin_accesorios(expresion):
+    """Toda la zona facial (no solo los rasgos) es idéntica píxel a píxel: ningún accesorio la invade."""
+    ref = validacion.zona("blue", expresion)
+    for k in PERSONAJES:
+        assert np.abs(validacion.zona(k, expresion) - ref).max() <= 24, f"{k} invade la zona facial en '{expresion}'"
+
+
+def test_sin_expresiones_propias_ni_accesorios_faciales():
+    for k, p in rig.catalogo().items():
+        assert "expresion" not in p, f"{k} no puede tener expresión propia"
+        assert "bigote" not in p["accesorios"], k

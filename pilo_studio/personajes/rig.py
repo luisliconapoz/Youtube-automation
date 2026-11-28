@@ -30,6 +30,9 @@ PUPILA = dict(r=7.5, base=(3.0, 3.0), max_dx=5.0, max_dy=9.0)
 CEJA = dict(dy=-36.0, semilargo=10.0, grosor=3.4)
 BOCA = dict(dy=27.0)
 ROJO_BOCA = (255, 45, 75)
+# Zona facial protegida (relativa al centro de la cabeza): ojos, pupilas, cejas y boca en
+# todas las expresiones. Ningún accesorio puede dibujar dentro de ella.
+ZONA_CARA = (-36.0, -50.0, 36.0, 46.0)
 BLANCO = (255, 255, 255)
 
 # Lienzo del sprite (u): x ∈ [-LX, LX], y ∈ [-ARRIBA, ABAJO]
@@ -162,7 +165,13 @@ class Lienzo:
         self.d.arc(self.caja(x0, y0, x1, y1), a0, a1, fill=color, width=self.w(ancho))
 
     def cuerda(self, x0, y0, x1, y1, a0, a1, fill):
-        self.d.chord(self.caja(x0, y0, x1, y1), a0, a1, fill=fill)
+        """Cuerda de elipse como polígono (ImageDraw.chord de Pillow 13 falla con ciertas
+        coordenadas y rellena casi toda la elipse)."""
+        cx, cy, rx, ry = (x0 + x1) / 2, (y0 + y1) / 2, abs(x1 - x0) / 2, abs(y1 - y0) / 2
+        n = max(8, int(abs(a1 - a0) / 3))
+        pts = [(cx + rx * math.cos(math.radians(a0 + (a1 - a0) * i / n)),
+                cy + ry * math.sin(math.radians(a0 + (a1 - a0) * i / n))) for i in range(n + 1)]
+        self.d.polygon([self.p(*q) for q in pts], fill=fill)
 
 
 NEGRO = (0, 0, 0)
@@ -260,7 +269,7 @@ def acc_mechon(L, esq, c):
         L.linea([(hx + dx, top + 3), (hx + cx, top + cy), (hx + ex, top + ey)], c, 3.6)
 
 
-Y_TOCADO = -52.0   # línea (relativa al centro de la cabeza) bajo la cual ningún tocado puede bajar
+Y_TOCADO = -57.0   # línea (relativa al centro de la cabeza) bajo la cual ningún tocado puede bajar
 
 
 def _casquete(L, hx, hy, c, extra=3.0, y_corte=Y_TOCADO):
@@ -279,8 +288,8 @@ def acc_cabello_coleta(L, esq, c):
     r = CABEZA["r"]
     _casquete(L, hx, hy, c, extra=4)
     # melena: solo trazos por fuera del contorno de la cabeza (no tocan la cara)
-    L.arco(hx - r - 5, hy - r - 5, hx + r + 5, hy + r + 5, 150, 250, c, 3.4)
-    L.linea([(hx - 42, hy - 46), (hx - 22, hy - 56), (hx, hy - 58), (hx + 24, hy - 56), (hx + 42, hy - 46)], c, 3.0)
+    L.arco(hx - r - 8, hy - r - 8, hx + r + 8, hy + r + 8, 150, 245, c, 3.4)
+    L.linea([(hx - 44, hy - 55), (hx - 22, hy - 61), (hx, hy - 63), (hx + 24, hy - 61), (hx + 44, hy - 55)], c, 3.0)
     # coleta
     L.linea([(hx + r - 2, hy - 30), (hx + r + 22, hy - 20), (hx + r + 30, hy + 10), (hx + r + 16, hy + 40)], c, 3.6)
     L.linea([(hx + r - 2, hy - 18), (hx + r + 14, hy - 4), (hx + r + 18, hy + 22), (hx + r + 16, hy + 40)], c, 3.6)
@@ -294,14 +303,6 @@ def acc_sombrero_paja(L, esq, c):
     L.elipse(hx, y, 92, 13, fill=NEGRO, outline=c, ancho=3.6)
     for k in range(-70, 80, 22):
         L.linea([(hx + k, y - 6), (hx + k + 8, y + 6)], c, 1.6)
-
-
-def acc_bigote(L, esq, c):
-    hx, hy = esq.cabeza
-    y = hy + BOCA["dy"] - 13
-    for s in (-1, 1):
-        L.d.chord(L.caja(hx, y - 6, hx + s * 24, y + 8), 0, 360, fill=BLANCO)
-        L.circulo(hx + s * 24, y - 2, 3.5, fill=BLANCO)
 
 
 def acc_overol(L, esq, c):
@@ -341,11 +342,11 @@ def acc_chistera(L, esq, c):
 
 
 def acc_monoculo(L, esq, c):
-    hx, hy = esq.cabeza
-    ex, ey = hx + OJO["dx"], hy + OJO["dy"]
+    """Monóculo colgado de una cadena sobre el traje: nunca toca la cara."""
+    (xl, y0), (xr, _), _, _ = esq.torso()
     oro = (255, 214, 60)
-    L.elipse(ex, ey, OJO["rx"] + 3.5, OJO["ry"] + 3.5, outline=oro, ancho=2.6)
-    L.linea([(ex + OJO["rx"] + 3, ey + 6), (ex + 32, ey + 40), (ex + 18, ey + 80)], oro, 1.6)
+    L.linea([(xr - 6, y0 + 4), (xr + 4, y0 + 34), (xr + 2, y0 + 56)], oro, 1.6)
+    L.circulo(xr + 2, y0 + 66, 10, outline=oro, ancho=2.6)
 
 
 def acc_casa_pecho(L, esq, c):
@@ -431,11 +432,14 @@ def acc_corona(L, esq, c):
 
 
 def acc_gafas(L, esq, c):
+    """Gafas subidas sobre la frente, por encima de cejas y ojos (fuera de la zona facial)."""
     hx, hy = esq.cabeza
-    for s in (-1, 1):
-        L.elipse(hx + s * OJO["dx"], hy + OJO["dy"], OJO["rx"] + 3.5, OJO["ry"] + 3.5, outline=c, ancho=2.6)
-    for s in (-1, 1):
-        L.linea([(hx + s * (OJO["dx"] + OJO["rx"] + 3), hy + OJO["dy"] - 4), (hx + s * 58, hy - 2)], c, 2.4)
+    y = hy + ZONA_CARA[1] - 14
+    for sx in (-1, 1):
+        L.elipse(hx + sx * 17, y, 13, 9, fill=NEGRO, outline=c, ancho=2.6)
+    L.linea([(hx - 4, y - 1), (hx + 4, y - 1)], c, 2.4)
+    for sx in (-1, 1):
+        L.linea([(hx + sx * 30, y - 2), (hx + sx * 50, y + 8)], c, 2.4)
 
 
 def acc_tableta(L, esq, c):
@@ -456,7 +460,7 @@ def acc_credencial(L, esq, c):
 
 ACCESORIOS = {
     "mechon": ("cabeza", acc_mechon), "cabello_coleta": ("cabeza", acc_cabello_coleta),
-    "sombrero_paja": ("cabeza", acc_sombrero_paja), "bigote": ("cabeza", acc_bigote),
+    "sombrero_paja": ("cabeza", acc_sombrero_paja),
     "overol": ("cuerpo", acc_overol), "horquilla": ("objeto", acc_horquilla),
     "traje": ("cuerpo", acc_traje), "chistera": ("cabeza", acc_chistera), "monoculo": ("cabeza", acc_monoculo),
     "casa_pecho": ("cuerpo", acc_casa_pecho), "gorra": ("cabeza", acc_gorra),
@@ -564,7 +568,7 @@ def render(clave: str, expresion: str | None = None, pose: str | None = None, al
     El ancla (suelo, centro) está en (ancho/2, alto_img - ABAJO*escala).
     """
     p = catalogo()[clave]
-    expresion = expresion or p.get("expresion", "neutral")
+    expresion = expresion or "neutral"   # mismo punto de partida para los 13
     s = alto / ALTURA_FIGURA
     W, H = int(2 * LX * s), int((ARRIBA + ABAJO) * s)
     img = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))

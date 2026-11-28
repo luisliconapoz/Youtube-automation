@@ -6,7 +6,7 @@ Archivo para reanudar el trabajo sin repetir tareas. Se actualiza al cerrar cada
 | Fase | Estado | Notas |
 |---|---|---|
 | 0 · Auditoría | ✅ Hecha (2026-11-28) | Ver auditoría en la conversación; sin cambios en el repo desde entonces. |
-| 1 · Personajes | 🟡 Construida y probada · **pendiente de aprobación visual** | `pilo_studio/personajes/`, `personajes/personajes.yaml`, `personajes/hojas/`, `tests/test_rig.py` |
+| 1 · Personajes | 🟡 Corrección final aplicada (rostro único) · **pendiente de aprobación visual** | `pilo_studio/personajes/`, `personajes/personajes.yaml`, `personajes/hojas/`, `tests/test_rig.py` |
 | 2 · Biblioteca visual | ⏳ Bloqueada por la aprobación de la fase 1 | Partir de `pruebas/prueba-produccion-01/scripts/02_montaje.py` |
 | 3 · Audio | ⏳ | Kokoro funciona técnicamente; **falta la escucha humana** de `pruebas/prueba-produccion-01/audio/narracion.wav` |
 | 4 · Motor | ⏳ | |
@@ -19,6 +19,10 @@ Archivo para reanudar el trabajo sin repetir tareas. Se actualiza al cerrar cada
 - Ningún tocado baja de `Y_TOCADO` (por encima de las cejas); gafas y monóculo son anillos ceñidos que no tapan el ojo.
 - Poses por cinemática inversa (posición de manos y pies) → poses nuevas en una línea.
 - Test de consistencia con **color de sonda**: detecta incluso accesorios blancos sobre ojos blancos.
+- **Rostro único (corrección del director, 2026-11-28):** `ZONA_CARA` protegida; sin bigote (Farmer),
+  monóculo colgado del traje (Rich), gafas sobre la frente (White); los 13 parten de `neutral` y no
+  tienen expresiones propias. `validacion.py` mide los rasgos sobre el render → `personajes/hojas/validacion_rostro.md`.
+- Pillow 13: `ImageDraw.chord` falla con ciertas coordenadas → `Lienzo.cuerda` dibuja polígonos.
 
 ## Entorno (este contenedor)
 - Instalado aquí: `requirements-dev.txt` (moviepy, anthropic, pytest…), kokoro-onnx, piper-tts, espeak-ng.

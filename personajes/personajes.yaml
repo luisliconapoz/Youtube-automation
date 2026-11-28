@@ -5,8 +5,9 @@
 #  REGLA UNIVERSAL: los 13 personajes usan la MISMA cara maestra
 #  (pilo_studio/personajes/rig.py: CABEZA, OJO, PUPILA, CEJA, BOCA).
 #  Solo cambian: color, ropa/accesorios, expresión y pose.
-#  Blue es el único con mechón. Rich sin ojos entrecerrados fijos.
-#  Pink sin pestañas.
+#  Blue es el único con mechón. Ningún accesorio entra en la zona facial
+#  (ZONA_CARA): sin bigote, monóculo colgado del traje, gafas sobre la frente.
+#  Todos parten de la misma expresión neutral; no hay expresiones propias.
 # ════════════════════════════════════════════════════════════════════
 personajes:
   # ---------------- FACT STICK ----------------
@@ -16,7 +17,6 @@ personajes:
     color: "#00e5ff"
     accesorios: [mechon]
     pose: explicando
-    expresion: happy
     rol: "Narrador principal: explica conceptos y guía la historia."
   green:
     nombre: Green
@@ -24,7 +24,6 @@ personajes:
     color: "#3dff2e"
     accesorios: []
     pose: idea
-    expresion: smug
     rol: "Inversiones y crecimiento; estrategias de largo plazo."
   pink:
     nombre: Pink
@@ -32,15 +31,13 @@ personajes:
     color: "#ff2bd6"
     accesorios: [cabello_coleta]
     pose: preguntando
-    expresion: happy
     rol: "Ejemplos cotidianos y nuevos ángulos."
   farmer:
     nombre: Farmer
     marca: fact-stick
     color: "#ffd400"
-    accesorios: [sombrero_paja, bigote, overol, horquilla]
+    accesorios: [sombrero_paja, overol, horquilla]
     pose: sosteniendo_izq
-    expresion: neutral
     rol: "Persona cotidiana: situaciones reales y preguntas comunes."
   rich:
     nombre: Rich
@@ -48,7 +45,6 @@ personajes:
     color: "#ff2a2a"
     accesorios: [traje, chistera, monoculo]
     pose: brazos_cruzados
-    expresion: smug
     rol: "Perspectiva de la élite rica; visión distinta y de largo plazo."
 
   # ---------------- MONEY LAB ----------------
@@ -58,7 +54,6 @@ personajes:
     color: "#00f0ff"
     accesorios: [casa_pecho]
     pose: explicando
-    expresion: happy
     rol: "Narrador principal: amable, curioso, práctico."
   lime:
     nombre: Lime
@@ -66,7 +61,6 @@ personajes:
     color: "#b4ff1a"
     accesorios: [gorra, calculadora]
     pose: idea_sosteniendo
-    expresion: serious
     rol: "Crédito, préstamos, deuda y seguros."
   brown:
     nombre: Brown
@@ -74,7 +68,6 @@ personajes:
     color: "#e08a3c"
     accesorios: [llave, casa_mano]
     pose: mostrando_ambas
-    expresion: excited
     rol: "Agente inmobiliario: comprar, alquilar, hipotecas."
   gray:
     nombre: Gray
@@ -82,7 +75,6 @@ personajes:
     color: "#d2d2d2"
     accesorios: [camisa, cartel_casa]
     pose: mostrando_der
-    expresion: concerned
     rol: "Persona cotidiana que compra o alquila."
 
   # ---------------- WILD MONEY ----------------
@@ -92,7 +84,6 @@ personajes:
     color: "#ff8a00"
     accesorios: []
     pose: explicando
-    expresion: talking
     rol: "Narrador principal: explica cómo funcionan las empresas."
   purple:
     nombre: Purple
@@ -100,7 +91,6 @@ personajes:
     color: "#d23cff"
     accesorios: [capa, traje, corona]
     pose: brazos_cruzados
-    expresion: smug
     rol: "Multimillonario / CEO."
   white:
     nombre: White
@@ -108,7 +98,6 @@ personajes:
     color: "#f4f4ff"
     accesorios: [gafas, tableta]
     pose: senalando_tableta
-    expresion: serious
     rol: "Analista: números, modelos de negocio y estrategia."
   teal:
     nombre: Teal
@@ -116,5 +105,4 @@ personajes:
     color: "#19e6d2"
     accesorios: [gorra, credencial]
     pose: rascandose
-    expresion: confused
     rol: "Trabajador y consumidor; pregunta lo que preguntaría cualquiera."

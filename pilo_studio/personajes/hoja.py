@@ -6,6 +6,8 @@ Genera en personajes/hojas/:
   hoja_personajes.png   – los 13 personajes por marca, en su pose y expresión de firma
   hoja_expresiones.png  – 13 personajes × 12 expresiones (primer plano, misma cara maestra)
   hoja_poses.png        – las 8 poses oficiales con el narrador de cada marca
+  hoja_rostros.png      – los 13 rostros neutrales, zona facial protegida y superposición
+  validacion_rostro.md  – medidas de ojos, pupilas, cejas y boca en los 13 (sobre el render)
 """
 from __future__ import annotations
 
@@ -14,7 +16,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-from pilo_studio.personajes import rig
+import numpy as np
+
+from pilo_studio.personajes import rig, validacion
 
 FONDO = (8, 8, 18, 255)
 FUENTE = "/usr/share/fonts/opentype/inter/InterDisplay-ExtraBold.otf"
@@ -87,15 +91,55 @@ def hoja_poses() -> Image.Image:
     return img
 
 
+def hoja_rostros() -> Image.Image:
+    alto, celda = 520, 250
+    claves = list(rig.catalogo())
+    img = Image.new("RGBA", (40 + celda * 7, 200 + 2 * (celda + 60)), FONDO)
+    _texto(img, (img.width // 2, 40), "ROSTRO MAESTRO · EXPRESIÓN NEUTRAL · 13 PERSONAJES", 40)
+    _texto(img, (img.width // 2, 90), "Recuadro discontinuo = zona facial protegida (ningún accesorio entra)", 24, (170, 170, 200))
+    caja = rig.caja_cabeza(alto, margen=1.55)
+    zx0, zy0, zx1, zy1 = validacion.zona_px(alto)
+    zonas = []
+    for i, k in enumerate(claves + ["__superpuestos"]):
+        x, y = 20 + (i % 7) * celda, 130 + (i // 7) * (celda + 60)
+        if k == "__superpuestos":
+            media = np.mean(zonas, axis=0).astype("uint8")
+            cab = Image.fromarray(media).convert("RGBA")
+            cab = cab.resize((int(cab.width * 1.6), int(cab.height * 1.6)), Image.LANCZOS)
+            img.alpha_composite(cab, (x + (celda - cab.width) // 2, y + (celda - cab.height) // 2))
+            _texto(img, (x + celda // 2, y + celda + 25), "13 SUPERPUESTOS", 22)
+            continue
+        sp = rig.render(k, expresion="neutral", pose="neutral", alto=alto)
+        d = ImageDraw.Draw(sp)
+        for t in range(0, zx1 - zx0, 14):   # recuadro discontinuo de la zona facial
+            d.line([(zx0 + t, zy0), (min(zx0 + t + 7, zx1), zy0)], fill=(255, 255, 255, 160), width=2)
+            d.line([(zx0 + t, zy1), (min(zx0 + t + 7, zx1), zy1)], fill=(255, 255, 255, 160), width=2)
+        for t in range(0, zy1 - zy0, 14):
+            d.line([(zx0, zy0 + t), (zx0, min(zy0 + t + 7, zy1))], fill=(255, 255, 255, 160), width=2)
+            d.line([(zx1, zy0 + t), (zx1, min(zy0 + t + 7, zy1))], fill=(255, 255, 255, 160), width=2)
+        cab = sp.crop(caja)
+        cab.thumbnail((celda - 10, celda - 10))
+        img.alpha_composite(cab, (x + (celda - cab.width) // 2, y + (celda - cab.height) // 2))
+        p = rig.catalogo()[k]
+        _texto(img, (x + celda // 2, y + celda + 25), p["nombre"].upper(), 26, p["rgb"])
+        zonas.append(validacion.zona(k, "neutral", alto).clip(0, 255))
+    return img
+
+
 def generar(salida: Path | None = None) -> list[Path]:
     salida = Path(salida or rig.RAIZ / "personajes" / "hojas")
     salida.mkdir(parents=True, exist_ok=True)
     rutas = []
     for nombre, fn in (("hoja_personajes", hoja_personajes), ("hoja_expresiones", hoja_expresiones),
-                       ("hoja_poses", hoja_poses)):
+                       ("hoja_poses", hoja_poses), ("hoja_rostros", hoja_rostros)):
         r = salida / f"{nombre}.png"
         fn().convert("RGB").save(r, optimize=True)
         rutas.append(r)
+    ok, texto = validacion.informe()
+    r = salida / "validacion_rostro.md"
+    r.write_text(texto, encoding="utf-8")
+    rutas.append(r)
+    print("Validación del rostro:", "APROBADO" if ok else "FALLA")
     return rutas
 
 
