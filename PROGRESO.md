@@ -7,11 +7,20 @@ Archivo para reanudar el trabajo sin repetir tareas. Se actualiza al cerrar cada
 |---|---|---|
 | 0 · Auditoría | ✅ Hecha (2026-11-28) | Ver auditoría en la conversación; sin cambios en el repo desde entonces. |
 | 1 · Personajes | 🟡 Corrección final aplicada (rostro único) · **pendiente de aprobación visual** | `pilo_studio/personajes/`, `personajes/personajes.yaml`, `personajes/hojas/`, `tests/test_rig.py` |
-| 2 · Biblioteca visual | ⏳ Bloqueada por la aprobación de la fase 1 | Partir de `pruebas/prueba-produccion-01/scripts/02_montaje.py` |
+| 2 · Biblioteca visual | ⏳ **No iniciar** hasta la aprobación visual explícita del director | Partir de `pruebas/prueba-produccion-01/scripts/02_montaje.py` |
 | 3 · Audio | ⏳ | Kokoro funciona técnicamente; **falta la escucha humana** de `pruebas/prueba-produccion-01/audio/narracion.wav` |
 | 4 · Motor | ⏳ | |
 | 5 · Integraciones | ⏳ | Notion conectado (lectura OK). OneDrive: falta `RCLONE_CONF_B64`. |
 | 6–9 | ⏳ | |
+
+## Decisiones del director
+- **Repositorio oficial: `luisliconapoz/Youtube-automation`** (confirmado 2026-11-28). Trabajar solo aquí;
+  no abrir ni modificar `pilo-studio-engine`. Rama de trabajo: `claude/dreamy-planck-cbs5du`.
+- Regla de rostro único (13 personajes, una cara maestra) — implementada y validada.
+
+## Último estado verificado
+- 2026-11-28 · commit `dea950e` en `origin/claude/dreamy-planck-cbs5du` · **71 tests pasan**.
+- Hojas entregadas para revisión: `personajes/hojas/` (rostros, personajes, expresiones, poses, validacion_rostro.md).
 
 ## Decisiones técnicas tomadas
 - Rig en **Python + Pillow** con supermuestreo ×3 (sin dependencias nuevas, el mismo motor que la prueba 01).
@@ -35,6 +44,6 @@ Archivo para reanudar el trabajo sin repetir tareas. Se actualiza al cerrar cada
 
 ## Pendiente de decisión del director
 1. Aprobación visual de las hojas de personajes.
-2. Repositorio oficial: `Youtube-automation` o `pilo-studio-engine`.
+2. ~~Repositorio oficial~~ → resuelto: `Youtube-automation`.
 3. Voz: escuchar Kokoro (`em_alex`).
 4. OneDrive: autorizar rclone (`scripts/conectar_onedrive.sh` → secreto `RCLONE_CONF_B64`).
