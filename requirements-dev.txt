@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest>=8.0
+opencv-python-headless>=4.9   # trazado y medición de fidelidad (solo desarrollo)
+scipy>=1.11

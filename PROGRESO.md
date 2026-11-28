@@ -26,13 +26,22 @@ Archivo para reanudar el trabajo sin repetir tareas. Se actualiza al cerrar cada
   silueta unida, como en la guía. La cara maestra (`CARA`) está medida sobre Blue.
 - `python -m pilo_studio.personajes.comparar blue` → `personajes/comparaciones/blue_comparacion.png`
   (guía | reconstrucción | superposición | mapa de diferencias + % de coincidencia del trazo).
-- Estado: **solo BLUE**. Coincidencia del trazo: 92 % (2 px) / 81 % (1 px). Los otros 12 NO se tocan
+- **Ronda 2 (trazado):** `trazar.py` (opencv, solo desarrollo) mide Blue sobre la guía ×4 y guarda
+  `personajes/trazados/blue.json` (contornos exactos del neón con su grosor, silueta, ojos, pupilas,
+  boca, lengua, cejas, colores, halo ajustado por mínimos cuadrados). `fiel.render_trazado` lo dibuja con Pillow.
+  `comparar.py` aplica la MISMA extracción a guía y reconstrucción (alineadas por correlación de fase) y
+  mide por partes → `personajes/comparaciones/blue_comparacion.png` y `blue_mediciones.json`.
+  Lecciones: el suavizado del contorno debe ser bajo (σ 0,7 px×4) o recorta las puntas de los dedos; las
+  líneas interiores tenues se detectan como crestas (no como umbral) para no confundirlas con el halo.
+- Estado: **solo BLUE**, pendiente de aprobación. Los parámetros a mano de la ronda 1 se eliminaron.
+- Nota para el rig: el trazado reproduce la pose de la guía; para poses/expresiones habrá que separar
+  sus partes (cabeza+cara, brazos, manos) en componentes articulables, sin perder la forma medida. Los otros 12 NO se tocan
   hasta que el director apruebe Blue; después, mismo procedimiento personaje a personaje.
 - Siguiente tras aprobar Blue: aplicar la cara maestra medida y el método a los demás; después, convertir las
   medidas en un rig con poses/expresiones (las poses de cuerpo entero salen de la fila "Common poses" de la guía).
 
 ## Último estado verificado
-- 2026-11-28 · prueba de fidelidad de Blue añadida · **71 tests pasan** (rig confirmado sin cambios).
+- 2026-11-28 · Blue ronda 2 (trazado medido) · **74 tests pasan** (71 + 3 de fidelidad).
 - Hojas entregadas para revisión: `personajes/hojas/` (rostros, personajes, expresiones, poses, validacion_rostro.md).
 
 ## Decisiones técnicas tomadas
