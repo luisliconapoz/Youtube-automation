@@ -46,7 +46,7 @@ def _suavizar(c: np.ndarray, cerrado=True) -> np.ndarray:
     return np.stack([np.convolve(pad[:, i], w, "valid") for i in (0, 1)], 1)
 
 
-def _poligonos(mask: np.ndarray, area_min=6 * E * E):
+def _poligonos(mask: np.ndarray, area_min=6 * E * E, perimetro_min=None):
     """Contornos con agujeros → [{'ext': [...], 'agujeros': [[...], ...]}] en px de guía."""
     cs, jer = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     res = []
@@ -54,7 +54,8 @@ def _poligonos(mask: np.ndarray, area_min=6 * E * E):
         return res
     jer = jer[0]
     for i, c in enumerate(cs):
-        if jer[i][3] != -1 or cv2.contourArea(c) < area_min:
+        grande = cv2.contourArea(c) >= area_min or (perimetro_min and cv2.arcLength(c, True) >= perimetro_min)
+        if jer[i][3] != -1 or not grande:
             continue
         def conv(cc):
             # el suavizado quita el ruido JPEG de los contornos largos; en trazos cortos
